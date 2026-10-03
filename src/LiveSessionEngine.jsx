@@ -1,4 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
+import {getStored} from './lib/storage.js';
 import {FaceDetector,ImageSegmenter,FilesetResolver} from '@mediapipe/tasks-vision';
 import {Camera,CameraOff,CircleDot,Mic,MicOff,MonitorUp,Phone,Radio,Save,ShieldCheck,SlidersHorizontal,Square,Upload,Video,Volume2,Wifi,WifiOff,X,Zap,Image as ImageIcon,Play,Pause,RefreshCw,ExternalLink} from 'lucide-react';
 
@@ -36,7 +37,7 @@ function AvatarStudio({onReady}){
 }
 
 export default function LiveSessionEngine(){
- const [mode,setMode]=useState('call'),[camera,setCamera]=useState(false),[screen,setScreen]=useState(false),[mic,setMic]=useState(false),[media,setMedia]=useState(null),[voice,setVoice]=useState(()=>localStorage.getItem('livesim.voiceProfileId')||''),[destination,setDestination]=useState(''),[connected,setConnected]=useState(false);
+ const [mode,setMode]=useState('call'),[camera,setCamera]=useState(false),[screen,setScreen]=useState(false),[mic,setMic]=useState(false),[media,setMedia]=useState(null),[voice,setVoice]=useState(()=>getStored('livesim.voiceProfileId','')),[destination,setDestination]=useState(''),[connected,setConnected]=useState(false);
  const [callState,setCallState]=useState('idle'),[streamState,setStreamState]=useState('idle'),[worker,setWorker]=useState('checking'),[gateway,setGateway]=useState('checking');
  const [connection,setConnection]=useState(null),[connecting,setConnecting]=useState(false);
  const [brightness,setBrightness]=useState(100),[contrast,setContrast]=useState(100),[saturation,setSaturation]=useState(100),[speed,setSpeed]=useState(1),[mirror,setMirror]=useState(false),[level,setLevel]=useState(0),[log,setLog]=useState([]);
