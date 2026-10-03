@@ -6,6 +6,24 @@ const json = async (response) => {
   return data;
 };
 
+export async function refreshConnection(connection) {
+  if (!connection?.refreshToken) return connection;
+  const provider = connection.provider;
+  if (!['google','zoom'].includes(provider)) return connection;
+  const tokenUrl = provider === 'google' ? 'https://oauth2.googleapis.com/token' : 'https://zoom.us/oauth/token';
+  const clientId = provider === 'google' ? process.env.LIVESIM_GOOGLE_CLIENT_ID : process.env.LIVESIM_ZOOM_CLIENT_ID;
+  const clientSecret = provider === 'google' ? process.env.LIVESIM_GOOGLE_CLIENT_SECRET : process.env.LIVESIM_ZOOM_CLIENT_SECRET;
+  if (!clientId || !clientSecret) return connection;
+  const body = new URLSearchParams({grant_type:'refresh_token',refresh_token:connection.refreshToken});
+  const response = await fetch(tokenUrl,{method:'POST',headers:{
+    Authorization:'Basic '+Buffer.from(clientId+':'+clientSecret).toString('base64'),
+    'Content-Type':'application/x-www-form-urlencoded'
+  },body});
+  const data = await json(response);
+  return {...connection,accessToken:data.access_token,refreshToken:data.refresh_token||connection.refreshToken,
+    scope:data.scope||connection.scope,expiresAt:Date.now()+Number(data.expires_in||3600)*1000};
+}
+
 export async function googleStart(connection) {
   const response = await fetch("https://meet.googleapis.com/v2/spaces", {
     method: "POST",
