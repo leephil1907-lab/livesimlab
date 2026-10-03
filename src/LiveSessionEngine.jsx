@@ -76,6 +76,23 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
    <div className="commandStatus"><span className="statusDot"/> ENGINE READY <i/> <span>{destination?('DESTINATION: '+destination.toUpperCase()):'NO DESTINATION'}</span></div>
    <div className="commandActions"><button onClick={()=>addLog('Session workspace checked','info')}><RefreshCw size={13}/> Check</button><button onClick={()=>setShowAvatar(v=>!v)}><ImageIcon size={13}/> Avatar</button></div>
   </div>
+  <details className="studioGuide" open>
+   <summary><span className="guideBadge">START HERE</span><b>LiveSim operating guide</b><small>Follow the green checks in order before starting a session.</small><span className="guideChevron">⌄</span></summary>
+   <div className="guideBody">
+    <div className="guideSteps">
+     <article><strong>01</strong><b>Connect your camera</b><p>For a phone camera, open DroidCam first. For the most stable setup, connect by USB; Wi-Fi works when both devices share the same network.</p><em>CHECK · Camera source shows READY/LIVE</em></article>
+     <article><strong>02</strong><b>Choose one source</b><p>Use Camera, Screen / Window, Media, or Avatar. Start with one source so you can see exactly what is entering the pipeline.</p><em>CHECK · Preview is moving</em></article>
+     <article><strong>03</strong><b>Check processing</b><p>Watch the Processing Conveyor and Worker Console. A GPU worker marked Offline means the neural renderer is not available yet; do not treat the browser preview as neural output.</p><em>CHECK · Worker state is understood</em></article>
+     <article><strong>04</strong><b>Configure output last</b><p>Select a destination only after your source and preview are correct. Do not press Start Live or Start Call while you are still testing the camera.</p><em>CHECK · Destination selected</em></article>
+    </div>
+    <div className="guideColumns">
+     <div><span>PHONE → OBS QUICK PATH</span><b>DroidCam → OBS → LiveSim</b><ol><li>Open DroidCam on the phone.</li><li>In OBS add a DroidCam OBS source and refresh devices.</li><li>Select the phone and activate it.</li><li>Confirm the OBS preview is clean before using LiveSim output.</li></ol></div>
+     <div><span>DO NOT SKIP</span><b>Preflight rules</b><ul><li>Use only faces, voices, media and accounts you are authorized to use.</li><li>Keep one camera source active while troubleshooting.</li><li>Do not enable audio in DroidCam unless you actually need it; video-only is recommended.</li><li>Keep the phone powered during long sessions.</li></ul></div>
+     <div><span>IF SOMETHING IS RED</span><b>Fast diagnosis</b><ul><li><b>Camera offline:</b> check DroidCam/USB/Wi-Fi before touching LiveSim.</li><li><b>Worker offline:</b> browser tracking can still work, but neural rendering is unavailable.</li><li><b>Preview black:</b> stop the source, refresh it, then restart one source only.</li><li><b>Lag:</b> test 1280×720 at 30 FPS before increasing quality.</li></ul></div>
+    </div>
+    <div className="guideLegend"><span><i className="dot good"/>GREEN = ready/connected</span><span><i className="dot warn"/>AMBER = needs configuration</span><span><i className="dot bad"/>RED = stop and troubleshoot</span><span><i className="dot info"/>BLUE = information only</span></div>
+   </div>
+  </details>
   <section className="studioAssetBin" aria-label="Project media browser">
    <div className="assetBinHead"><div><span>PROJECT BIN</span><b>Media & source assets</b><small>Local project assets stay in this browser session until you choose a transport.</small></div><div className="assetBinActions"><button onClick={()=>fileRef.current?.click()}><Upload size={12}/> Import video</button><button onClick={()=>document.getElementById('avatar-target-input')?.click()}><FolderOpen size={12}/> Add portrait</button></div></div>
    <div className="assetCards">
