@@ -2,12 +2,14 @@
 import asyncio, os, time
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 HOST=os.getenv("LIVESIM_BRIDGE_HOST","127.0.0.1")
 PORT=int(os.getenv("LIVESIM_BRIDGE_PORT","8788"))
 MAX_FRAME_BYTES=int(os.getenv("LIVESIM_BRIDGE_MAX_FRAME_BYTES",str(900_000)))
 MAX_FPS=float(os.getenv("LIVESIM_BRIDGE_MAX_FPS","30"))
 app=FastAPI(title="LiveSim Desktop Media Bridge")
+app.add_middleware(CORSMiddleware, allow_origins=os.getenv("LIVESIM_BRIDGE_CORS","*").split(","), allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 viewers=set(); audio_viewers=set(); last_frame=None; last_frame_at=0.0; last_publish_at=0.0; frame_count=0
 
 OBS_HTML="""<!doctype html><html><head><meta charset="utf-8"><title>LiveSim OBS Output</title>
