@@ -1,12 +1,14 @@
 """LiveSim Lab persistent GPU media worker."""
-import os,time,uuid
+import os,time,uuid,asyncio,json
 from typing import Dict
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect,HTTPException
 from fastapi.responses import JSONResponse
+from realtime_deep_live import RealtimeRenderer
 
 app=FastAPI(title="LiveSim Lab GPU Media Worker")
 sessions: Dict[str,dict]={}
-RENDERER=os.getenv("LIVE_RENDERER_BACKEND","liveportrait")
+renderers: Dict[str,RealtimeRenderer]={}
+RENDERER=os.getenv("LIVE_RENDERER_BACKEND","deep-live-cam")
 GPU_PROVIDER=os.getenv("LIVE_GPU_PROVIDER","cuda")
 
 @app.get("/health")
@@ -15,13 +17,21 @@ def health():
 
 @app.get("/capabilities")
 def capabilities():
-    return {"renderer":RENDERER,"gpu_provider":GPU_PROVIDER,"modes":["avatar-driver","face-reenactment"],"input":["webcam","microphone"],"output":["webrtc","whip","recording"],"persistent":True}
+    return {"renderer":RENDERER,"gpu_provider":GPU_PROVIDER,"modes":["avatar-driver","face-reenactment"],"input":["webcam"],"output":["webrtc","whip","recording"],"persistent":True,"neural":True}
 
 @app.post("/sessions")
 def create_session():
     sid="lsgpu_"+uuid.uuid4().hex[:16]
-    sessions[sid]={"created":time.time(),"frames":0,"last_frame":0,"status":"ready"}
-    return {"sessionId":sid,"status":"ready","renderer":RENDERER,"gpuProvider":GPU_PROVIDER}
+    try:
+        renderers[sid]=RealtimeRenderer(GPU_PROVIDER)
+        status="ready"
+    except Exception as exc:
+        status="renderer-error"
+        renderers[sid]=None
+        sessions[sid]={"created":time.time(),"frames":0,"last_frame":0,"status":status,"error":str(exc)}
+        return {"sessionId":sid,"status":status,"renderer":RENDERER,"gpuProvider":GPU_PROVIDER,"error":str(exc)}
+    sessions[sid]={"created":time.time(),"frames":0,"last_frame":0,"status":status}
+    return {"sessionId":sid,"status":status,"renderer":RENDERER,"gpuProvider":GPU_PROVIDER}
 
 @app.get("/sessions/{sid}")
 def session_status(sid:str):
@@ -32,29 +42,38 @@ def session_status(sid:str):
 @app.delete("/sessions/{sid}")
 def delete_session(sid:str):
     if not sessions.pop(sid,None): raise HTTPException(404,"GPU session not found")
+    renderers.pop(sid,None)
     return {"ok":True}
 
 @app.websocket("/sessions/{sid}/driver")
 async def driver(ws:WebSocket,sid:str):
     await ws.accept()
-    s=sessions.get(sid)
-    if not s:
-        await ws.send_json({"type":"error","message":"GPU session not found"}); await ws.close(code=4404); return
+    s=sessions.get(sid); renderer=renderers.get(sid)
+    if not s or not renderer or not renderer.ready:
+        await ws.send_json({"type":"error","message":"GPU renderer is not ready"})
+        await ws.close(code=4503); return
     try:
         while True:
-            msg=await ws.receive_json()
-            if msg.get("type")=="frame":
-                s["frames"]+=1; s["last_frame"]=time.time(); s["status"]="processing"
-                await ws.send_json({"type":"frame_ack","sessionId":sid,"frame":s["frames"]})
-            elif msg.get("type")=="ping":
-                await ws.send_json({"type":"pong","t":msg.get("t")})
-            elif msg.get("type")=="stop":
-                s["status"]="stopped"; break
+            msg=await ws.receive()
+            if msg.get("bytes") is not None:
+                frame=renderer.decode(msg["bytes"])
+                if frame is None: continue
+                started=time.perf_counter()
+                output=await asyncio.to_thread(renderer.process,frame)
+                await ws.send_bytes(renderer.encode(output))
+                s["frames"]+=1
+                s["last_frame"]=time.time()
+                s["fps"]=round(1/max(0.001,time.perf_counter()-started),1)
+                s["status"]="processing"
+            elif msg.get("text"):
+                data=json.loads(msg["text"])
+                if data.get("type")=="ping": await ws.send_json({"type":"pong","t":data.get("t")})
+                elif data.get("type")=="stop": s["status"]="stopped"; break
     except WebSocketDisconnect:
         s["status"]="disconnected"
     except Exception as exc:
-        s["status"]="error"
+        s["status"]="error"; s["error"]=str(exc)
 
 @app.get("/")
 def root():
-    return JSONResponse({"service":"LiveSim Lab GPU Worker","status":"ready","renderer":RENDERER})
+    return JSONResponse({"service":"LiveSim Lab GPU Worker","status":"ready","renderer":RENDERER,"neural":True})
