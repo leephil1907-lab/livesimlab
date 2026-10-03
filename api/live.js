@@ -20,7 +20,7 @@ export default function handler(req,res){
         obsVirtualCamera:true,
         googleOutgoingMedia:false,
         whatsappCallApi:false,
-        zoomNativeProductionStudio:true
+        zoomNativeProductionStudio:"sdk-required"
       }
     });
   }
