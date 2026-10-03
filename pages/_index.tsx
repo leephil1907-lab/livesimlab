@@ -59,6 +59,8 @@ export default function Home() {
   const [destinationOpen, setDestinationOpen] = useState<PlatformId | ''>('');
   const [destinationValue, setDestinationValue] = useState('');
   const [destinationConnected, setDestinationConnected] = useState(false);
+  const [connectionBusy, setConnectionBusy] = useState(false);
+  const [connectionMessage, setConnectionMessage] = useState('');
   const [sessionReady, setSessionReady] = useState(false);
   const [mediaBrightness, setMediaBrightness] = useState(100);
   const [mediaContrast, setMediaContrast] = useState(100);
@@ -181,6 +183,33 @@ export default function Home() {
     if (mediaUrl) URL.revokeObjectURL(mediaUrl);
   }, [mediaUrl]);
 
+  const connectPlatformAccount = async () => {
+    if (!destination || destination === 'custom') {
+      addEvent('CONNECT', 'Select an account-based platform first', 'warning');
+      return;
+    }
+    setConnectionBusy(true);
+    setConnectionMessage('');
+    try {
+      const response = await fetch('/_api/platform-connect?provider=' + encodeURIComponent(destination));
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || body.message || 'Connection could not be started.');
+      if (!body.configured) {
+        setConnectionMessage(body.message || 'This provider needs OAuth configuration on the server.');
+        addEvent('CONNECT', (platforms.find(p=>p.id===destination)?.name || 'Platform') + ' OAuth is not configured yet', 'warning');
+        return;
+      }
+      addEvent('CONNECT', 'Opening official account authorization for ' + (platforms.find(p=>p.id===destination)?.name || 'platform'));
+      window.location.assign(body.authorizationUrl);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Connection could not be started.';
+      setConnectionMessage(message);
+      addEvent('CONNECT', message, 'warning');
+    } finally {
+      setConnectionBusy(false);
+    }
+  };
+
   const startStream = () => {
     if (!destination) {
       addEvent('STREAM', 'Choose a destination before starting the session', 'warning');
@@ -257,6 +286,10 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    document.querySelectorAll<HTMLVideoElement>('.app video').forEach(video => { video.playbackRate = mediaSpeed; });
+  }, [mediaSpeed]);
+
   const mediaVisualStyle = {
     filter: 'brightness(' + mediaBrightness + '%) contrast(' + mediaContrast + '%) saturate(' + mediaSaturation + '%)',
     transform: 'scale(' + (mediaMirror ? -1 : 1) * (mediaZoom / 100) + ', ' + (mediaZoom / 100) + ')',
@@ -302,7 +335,9 @@ export default function Home() {
           </button>)}
         </div>
         {destinationOpen && <div className="connectionDetail">
-          {(() => { const p=platforms.find(x=>x.id===destinationOpen); if(!p) return null; return <><div><p className="eyebrow">DESTINATION SETUP</p><h3>{p.name}</h3><p>{p.description}</p></div><label>Meeting URL / stream endpoint / connection reference<input value={destinationValue} onChange={e=>setDestinationValue(e.target.value)} placeholder={p.id==='zoom'?'Paste your Zoom meeting URL or integration reference':p.id==='googlemeet'?'Paste your Google Meet URL':'Paste the destination URL or supported endpoint'} /></label><small>Requires: {p.requires}</small><button className="primaryBtn" onClick={()=>{if(!destinationValue.trim()){addEvent('CONNECT',`Add a ${p.name} destination first`,'warning');return;}setDestination(p.id);setDestinationConnected(true);addEvent('CONNECT',`${p.name} destination configured by user`,'success')}}>{destinationConnected && destination===p.id?'DESTINATION READY':'CONFIGURE DESTINATION'}</button>{destinationConnected && destination===p.id && /^https?:\\/\\//i.test(destinationValue) && <button className="outline" onClick={()=>window.open(destinationValue,'_blank','noopener,noreferrer')}>OPEN {p.name.toUpperCase()}</button>}</>})()}
+          {(() => { const p=platforms.find(x=>x.id===destinationOpen); if(!p) return null; return <><div><p className="eyebrow">DESTINATION SETUP</p><h3>{p.name}</h3><p>{p.description}</p></div><label>Meeting URL / stream endpoint / connection reference<input value={destinationValue} onChange={e=>setDestinationValue(e.target.value)} placeholder={p.id==='zoom'?'Paste your Zoom meeting URL or integration reference':p.id==='googlemeet'?'Paste your Google Meet URL':'Paste the destination URL or supported endpoint'} /></label><small>Requires: {p.requires}</small><button className="primaryBtn" onClick={()=>{if(!destinationValue.trim()){addEvent('CONNECT',`Add a ${p.name} destination first`,'warning');return;}setDestination(p.id);setDestinationConnected(true);addEvent('CONNECT',`${p.name} destination configured by user`,'success')}}>{destinationConnected && destination===p.id?'DESTINATION READY':'CONFIGURE DESTINATION'}</button>
+<button className="outline connectAccountBtn" disabled={connectionBusy || p.id==='custom'} onClick={connectPlatformAccount}>{connectionBusy ? 'OPENING…' : 'CONNECT ACCOUNT'}</button>
+{connectionMessage && <small className="connectionMessage">{connectionMessage}</small>}{destinationConnected && destination===p.id && /^https?:\\/\\//i.test(destinationValue) && <button className="outline" onClick={()=>window.open(destinationValue,'_blank','noopener,noreferrer')}>OPEN {p.name.toUpperCase()}</button>}</>})()}
         </div>}
       </section>}
 
