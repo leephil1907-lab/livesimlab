@@ -131,7 +131,7 @@ export default function Home() {
       micStreamRef.current?.getTracks().forEach(track => track.stop());
       micStreamRef.current = null;
       if (micFrameRef.current) cancelAnimationFrame(micFrameRef.current);
-      await micAudioContextRef.current?.close().catch(() => undefined);
+      if (micAudioContextRef.current) await micAudioContextRef.current.close().catch(() => undefined);
       micAudioContextRef.current = null;
       micAnalyserRef.current = null;
       setMicEnabled(false);
@@ -179,7 +179,7 @@ export default function Home() {
   useEffect(() => () => {
     micStreamRef.current?.getTracks().forEach(track => track.stop());
     if (micFrameRef.current) cancelAnimationFrame(micFrameRef.current);
-    micAudioContextRef.current?.close().catch(() => undefined);
+    if (micAudioContextRef.current) micAudioContextRef.current.close().catch(() => undefined);
     if (mediaUrl) URL.revokeObjectURL(mediaUrl);
   }, [mediaUrl]);
 
