@@ -32,6 +32,16 @@ export default function WorkerConsole(){
  return <section className="workerConsole" aria-labelledby="worker-title">
   <div className="workerHeader"><div><span>RUNTIME FABRIC</span><h2 id="worker-title">Workers & bridges</h2><p>Every media stage reports its real connection state. Nothing is shown as ready just because an endpoint is configured.</p></div><button onClick={probe} disabled={busy}><RefreshCw size={14} className={busy?'spin':''}/> {busy?'Checking…':'Refresh'}</button></div>
   <div className="workerSummary"><Server size={15}/><b>{online}/{configs.length} services online</b><span>auto-checking every 10s</span></div>
+  <div className="runtimeFlow" aria-label="LiveSim runtime pipeline">
+   <div className="flowTrack">
+    <span className="flowNode source"><Wifi size={13}/> Browser sources</span><i>→</i>
+    <span className={'flowNode '+(states.gpu?.state==='online'?'live':'')}><Cpu size={13}/> Neural GPU</span><i>→</i>
+    <span className="flowNode output"><RadioTower size={13}/> Video output</span><i>→</i>
+    <span className={'flowNode '+(states.media?.state==='online'?'live':'')}><Server size={13}/> Media bridge</span><i>→</i>
+    <span className="flowNode destination"><Wifi size={13}/> One destination</span>
+   </div>
+   <div className="flowSecondary"><span className={'flowNode '+(states.voice?.state==='online'?'live':'')}><Mic2 size={13}/> Authorized voice worker</span><i>→</i><span className="flowNode output"><RadioTower size={13}/> Audio bridge</span><i>→</i><span className="flowNode destination">Selected platform audio</span></div>
+  </div>
   <div className="workerGrid">{configs.map(c=>{const s=states[c.id]||{state:'checking'};const I=c.icon;return <article key={c.id} className={'workerCard '+s.state} aria-busy={s.state==='checking'}>
    <div className="workerCardTop"><div className="workerIcon"><I size={17}/></div><div><b>{c.label}</b><small>{c.kind} · {c.detail}</small></div><span className="workerDot" aria-label={s.state}/></div>
    <div className="workerMeta"><code>{c.url()||'Endpoint not configured'}</code>{s.latency&&<span>{s.latency}ms</span>}</div>
