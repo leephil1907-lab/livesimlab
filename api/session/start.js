@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { parseCookies, seal, unseal, setCookie } from "../_lib/security.js";
+import { googleStart, zoomStart, tiktokCreatorInfo } from "../_lib/platforms.js";
 
 export default function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST required." });
@@ -18,6 +19,16 @@ export default function handler(req, res) {
     return res.status(409).json({ error: "Destination does not match the authorized account." });
   }
 
+  let platform = null;
+  try {
+    if (destination === "google") platform = await googleStart(connection);
+    else if (destination === "zoom") platform = await zoomStart(connection, { topic: mediaName });
+    else if (destination === "tiktok") platform = await tiktokCreatorInfo(connection);
+    else if (destination === "whatsapp" || destination === "telegram") platform = { provider: destination, status: "external", mediaInjection: "external_client", message: "Open the platform client and select LiveSim processed media where supported." };
+  } catch (error) {
+    return res.status(502).json({ error: error.message });
+  }
+
   const session = {
     id: "ls_" + crypto.randomBytes(12).toString("hex"),
     status: "ready",
@@ -26,7 +37,8 @@ export default function handler(req, res) {
     voiceProfileId,
     destination: connection.provider,
     accountId: connection.accountId,
-    startedAt: Date.now()
+    startedAt: Date.now(),
+    platform
   };
 
   res.setHeader("Set-Cookie", setCookie("livesim_session", seal(session, 60 * 60 * 8), 60 * 60 * 8));
@@ -37,6 +49,7 @@ export default function handler(req, res) {
     mediaName: session.mediaName,
     voiceProfileId: session.voiceProfileId,
     destination: session.destination,
-    startedAt: session.startedAt
+    startedAt: session.startedAt,
+    platform
   });
 }
