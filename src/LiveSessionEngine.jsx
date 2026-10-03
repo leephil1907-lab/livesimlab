@@ -1,5 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {Camera,CameraOff,Check,CircleDot,Copy,Download,Film,Gauge,Globe2,Mic,MicOff,MonitorPlay,Phone,Radio,Send,ShieldCheck,SlidersHorizontal,Square,Upload,UserRound,Video,Volume2,Wifi,WifiOff,X,Zap} from 'lucide-react';
+import {Camera,CameraOff,CircleDot,Film,Mic,MicOff,MonitorUp,Phone,Radio,Save,ShieldCheck,SlidersHorizontal,Square,Upload,Video,Volume2,Wifi,WifiOff,X,Zap} from 'lucide-react';
 
 const PIPELINE=[['source','Camera / File Source'],['detect','Face Detector'],['mark','Face Marker'],['swap','Face Swapper / Animator'],['merge','Face Merger'],['output','Stream Output']];
 const PLATFORMS=[['whatsapp','WhatsApp'],['google','Google Meet'],['zoom','Zoom'],['telegram','Telegram'],['tiktok','TikTok LIVE'],['rtmp','Custom RTMP'],['webrtc','WebRTC peer']];
