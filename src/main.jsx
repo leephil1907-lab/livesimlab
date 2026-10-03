@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {Bell,CircleHelp,LayoutDashboard,Library,Radio,Settings,SlidersHorizontal,Sparkles,Video,Volume2} from 'lucide-react';
 import LiveSessionEngine from './LiveSessionEngine.jsx';
 import ObsBridge from './ObsBridge.jsx';
+import MediaBridgeClient from './MediaBridgeClient.jsx';
 import './live-engine.css';
 import './obs-bridge.css';
 import './styles.css';
@@ -11,7 +12,7 @@ import './studio-shell.css';
 function App(){
  const [section,setSection]=useState('studio');
  const nav=[['studio','Studio',LayoutDashboard],['obs','OBS Bridge',SlidersHorizontal],['calls','Calls',Video],['streams','Live',Radio],['voices','Voices',Volume2],['media','Media Library',Library],['settings','Settings',Settings]];
- return <div className="studioApp">
+ return <div className="studioApp"><MediaBridgeClient/>
   <header className="studioTopbar">
    <div className="studioBrand"><div className="studioLogo">LS</div><div><b>LiveSim Lab</b><span>VIRTUAL STUDIO</span></div></div>
    <div className="studioMode"><Sparkles size={14}/> Production workspace</div>
