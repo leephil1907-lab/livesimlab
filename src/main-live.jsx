@@ -1,8 +1,9 @@
 import React,{useEffect,useState} from 'react';
+import {ArrowUpRight,ChevronRight,Command,Headphones,Mic,Radio,ShieldCheck,Volume2,Zap} from 'lucide-react';
 import {createRoot} from 'react-dom/client';
-import {Activity,ArrowUpRight,ChevronRight,Command,Headphones,Mic,Radio,ShieldCheck,Video,Volume2,Zap} from 'lucide-react';
 import DeepLiveCamLab from './DeepLiveCamLab.jsx';
 import './styles.css';
+import './live-lab.css';
 
 const destinations=[['WhatsApp','Account connection'],['Google Meet','Account connection'],['Zoom','Account connection'],['Telegram','Account connection'],['TikTok LIVE','Account connection'],['Custom RTMP / WebRTC','Endpoint']];
 function App(){
