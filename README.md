@@ -17,7 +17,7 @@ Local desktop bridge
   ↓
 OBS Browser Source
   ↓
-OBS scene
+OBS scene + browser-source audio
   ↓
 OBS Virtual Camera
   ↓
@@ -26,7 +26,7 @@ Zoom / Meet / other webcam applications
 
 OBS's Virtual Camera exposes the selected OBS scene as a webcam to applications that accept webcam input. urlOBS Virtual Camera Guidehttps://obsproject.com/kb/virtual-camera-guide
 
-The local bridge is `bridge/server.py`. It is deliberately bound to `127.0.0.1` by default and accepts JPEG frames over a local WebSocket. OBS loads `http://127.0.0.1:8788/obs` as a Browser Source. OBS Browser Source can render custom web content and audio/video tasks. urlOBS Browser Source Guidehttps://obsproject.com/kb/browser-source
+The local bridge is `bridge/server.py`. It is deliberately bound to `127.0.0.1` by default and accepts JPEG video frames and generated WAV audio over local WebSockets. OBS loads `http://127.0.0.1:8788/obs` as a Browser Source. OBS Browser Source can render custom web content and audio/video tasks. urlOBS Browser Source Guidehttps://obsproject.com/kb/browser-source
 
 ## Neural face renderer
 
@@ -57,7 +57,7 @@ The RTX worker requires model weights that are intentionally excluded from Git. 
 
 The public F5-TTS checkpoints have a separate model-weight license and are currently non-commercial; use a properly licensed checkpoint for commercial deployment. urlF5-TTS repositoryhttps://github.com/SWivid/F5-TTS
 
-The LiveSim voice workflow is restricted to voices the user owns or is explicitly authorized to use.
+The LiveSim voice workflow is restricted to voices the user owns or is explicitly authorized to use. Generated WAV output is also forwarded to the local OBS Browser Source so OBS can mix it as a browser-source audio input; OBS supports controlling Browser Source audio through its mixer. urlOBS Browser Source Guidehttps://obsproject.com/kb/browser-source
 
 ## OBS control
 
