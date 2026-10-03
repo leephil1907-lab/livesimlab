@@ -226,7 +226,7 @@ export default function Home() {
           </button>)}
         </div>
         {destinationOpen && <div className="connectionDetail">
-          {(() => { const p=platforms.find(x=>x.id===destinationOpen); if(!p) return null; return <><div><p className="eyebrow">DESTINATION SETUP</p><h3>{p.name}</h3><p>{p.description}</p></div><label>Meeting URL / stream endpoint / connection reference<input value={destinationValue} onChange={e=>setDestinationValue(e.target.value)} placeholder={p.id==='zoom'?'Paste your Zoom meeting URL or integration reference':p.id==='googlemeet'?'Paste your Google Meet URL':'Paste the destination URL or supported endpoint'} /></label><small>Requires: {p.requires}</small><button className="primaryBtn" onClick={()=>{if(!destinationValue.trim()){addEvent('CONNECT',`Add a ${p.name} destination first`,'warning');return;}setDestination(p.id);setDestinationConnected(true);addEvent('CONNECT',`${p.name} destination configured by user`,'success')}}>{destinationConnected && destination===p.id?'CONNECTED':'CONFIGURE DESTINATION'}</button></>})()}
+          {(() => { const p=platforms.find(x=>x.id===destinationOpen); if(!p) return null; return <><div><p className="eyebrow">DESTINATION SETUP</p><h3>{p.name}</h3><p>{p.description}</p></div><label>Meeting URL / stream endpoint / connection reference<input value={destinationValue} onChange={e=>setDestinationValue(e.target.value)} placeholder={p.id==='zoom'?'Paste your Zoom meeting URL or integration reference':p.id==='googlemeet'?'Paste your Google Meet URL':'Paste the destination URL or supported endpoint'} /></label><small>Requires: {p.requires}</small><button className="primaryBtn" onClick={()=>{if(!destinationValue.trim()){addEvent('CONNECT',`Add a ${p.name} destination first`,'warning');return;}setDestination(p.id);setDestinationConnected(true);addEvent('CONNECT',`${p.name} destination configured by user`,'success')}}>{destinationConnected && destination===p.id?'DESTINATION READY':'CONFIGURE DESTINATION'}</button>{destinationConnected && destination===p.id && /^https?:\\/\\//i.test(destinationValue) && <button className="outline" onClick={()=>window.open(destinationValue,'_blank','noopener,noreferrer')}>OPEN {p.name.toUpperCase()}</button>}</>})()}
         </div>}
       </section>}
 
@@ -241,7 +241,7 @@ export default function Home() {
             <div className="streamStage">
               <div className="stageGrid"/>
               <div className="streamPreview">
-                <span className="liveBadge">{streaming ? '● SESSION ACTIVE' : destinationConnected ? 'DESTINATION READY' : 'CONNECT A DESTINATION'}</span>
+                <span className="liveBadge">{streaming ? '● SESSION ACTIVE' : destinationConnected ? 'DESTINATION READY' : 'CHOOSE A DESTINATION'}</span>
                 {mediaUrl ? <video src={mediaUrl} controls playsInline /> : <button className="outline" onClick={() => mediaInputRef.current?.click()}>Load video</button>}
                 <b>{mediaName || 'No media loaded'}</b>
                 <small>Local media only · simulation label remains visible</small>
