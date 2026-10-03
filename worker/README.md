@@ -1,51 +1,52 @@
-# LiveSim Lab GPU Media Worker
+# LiveSim GPU + voice workers
 
-The Vercel app is the control plane. This worker runs on the machine with the NVIDIA GPU and performs real-time face processing.
+These workers run on the desktop NVIDIA machine. The Vercel app is only the browser/control plane.
 
-## Pipeline
+## Face / expression pipeline
 
-Camera frames -> WebSocket -> Deep-Live-Cam / InsightFace -> JPEG output -> browser canvas MediaStream -> WebRTC/WHIP/recording.
-
-## Windows + NVIDIA setup
-
-Use Python 3.11 in a dedicated virtual environment. Install the worker dependencies, then ensure the pinned Deep-Live-Cam submodule is present at `vendor/DeepLiveCam`.
-
-The current Deep-Live-Cam CUDA guidance uses CUDA 12.8, cuDNN 8.9.7 for CUDA 12.x, PyTorch CUDA wheels, and ONNX Runtime GPU. See the upstream README before installing the CUDA stack.
-
-Models required by the renderer are kept out of Git:
-
-- `vendor/DeepLiveCam/models/inswapper_128_fp16.onnx`
-- the InsightFace `buffalo_l` analysis models, normally downloaded to the user's InsightFace model cache
-
-Never commit user photos, camera frames, voice recordings, or model weights to the application repository.
-
-## Start
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r worker/requirements.txt
-uvicorn worker.gpu_worker:app --host 0.0.0.0 --port 8787
+```text
+Camera JPEG
+  -> WebSocket /sessions/{id}/driver
+  -> Deep-Live-Cam / InsightFace model (loaded once)
+  -> target source face
+  -> frame-level face swap / expression transfer
+  -> JPEG output
+  -> browser canvas MediaStream
+  -> local OBS bridge
 ```
 
-Set the frontend environment:
+The worker does not claim neural output until the renderer model has successfully loaded. POST /sessions returns status=ready only after the face-swap model is instantiated.
 
-`VITE_LIVESIM_GPU_WORKER_URL=http://YOUR_GPU_MACHINE:8787`
+Required model weights are downloaded/managed by the Deep-Live-Cam dependency and are intentionally not committed to Git.
 
-For a public deployment, put the worker behind HTTPS/WSS and authentication rather than exposing the development port directly.
+## Voice / TTS pipeline
 
-## API
+```text
+Authorized reference audio + transcript
+  -> /profiles
+  -> persistent F5-TTS model
+  -> /synthesize
+  -> WAV
+```
 
-- `GET /health`
-- `GET /capabilities`
-- `POST /sessions`
-- `POST /sessions/{id}/source` — upload the authorized avatar portrait
-- `WS /sessions/{id}/driver` — binary JPEG camera frames in, processed JPEG frames out
-- `GET /sessions/{id}`
-- `DELETE /sessions/{id}`
+Start:
 
-The worker keeps the face model loaded for the session instead of launching a new inference process for every frame.
+```bash
+pip install -r worker/requirements.txt
+uvicorn worker.gpu_worker:app --host 127.0.0.1 --port 8787
+python worker/voice_worker.py
+```
 
-## Important
+The public F5-TTS checkpoints currently have a non-commercial model-weight license. For a commercial product, configure a checkpoint whose training data and model weights are properly licensed for that use.
 
-Vercel does not run the GPU inference process. The worker must be running on an NVIDIA/CUDA machine. If the worker is offline, LiveSim Lab keeps the renderer unavailable instead of pretending that the browser motion preview is neural synthesis.
+## GPU requirements
+
+NVIDIA/CUDA is preferred. The RTX 4050 desktop path should be configured with a compatible NVIDIA driver and CUDA-enabled PyTorch/ONNX Runtime. The worker reports its selected provider at /health and /capabilities.
+
+## Security
+
+- Bind local workers to 127.0.0.1 unless remote access is deliberately required.
+- If a remote worker is exposed, put it behind HTTPS/WSS plus authentication.
+- Do not store provider OAuth secrets in these workers.
+- Use only authorized voice references and target faces.
+- Keep uploaded voice samples and model weights out of Git.
