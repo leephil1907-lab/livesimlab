@@ -12,5 +12,5 @@ torch
 torchvision
 torchaudio
 
-f5-tts>=1.1.0
+f5-tts
 soundfile>=0.12.1
