@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {getStored} from './lib/storage.js';
 import WorkerConsole from './WorkerConsole.jsx';
 import {FaceDetector,ImageSegmenter,FilesetResolver} from '@mediapipe/tasks-vision';
-import {Camera,CameraOff,CircleDot,Mic,MicOff,MonitorUp,Phone,Radio,Save,ShieldCheck,SlidersHorizontal,Square,Upload,Video,Volume2,Wifi,WifiOff,X,Zap,Image as ImageIcon,Play,Pause,RefreshCw,ExternalLink} from 'lucide-react';
+import {Camera,CameraOff,CircleDot,Mic,MicOff,MonitorUp,Phone,Radio,Save,ShieldCheck,SlidersHorizontal,Square,Upload,Video,Volume2,Wifi,WifiOff,X,Zap,Image as ImageIcon,Play,Pause,RefreshCw,ExternalLink,FolderOpen,Film,Layers3} from 'lucide-react';
 
 const PIPELINE=[['source','Camera / File Source'],['detect','Face Detector'],['mark','Face Marker'],['swap','Face Swapper / Animator'],['merge','Face Merger'],['output','Stream Output']];
 const PLATFORMS=[['whatsapp','WhatsApp'],['google','Google Meet'],['zoom','Zoom'],['telegram','Telegram'],['tiktok','TikTok LIVE'],['rtmp','Custom RTMP'],['webrtc','WebRTC peer']];
@@ -68,7 +68,6 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
  const visual={filter:`brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`,transform:`scaleX(${mirror?-1:1})`};
  return <section className="liveEngine">
   <div className="engineHero"><div><span className="engineKicker">LIVESIM SESSION ENGINE / REAL-TIME AVATAR PIPELINE</span><h2>Video call + live streaming control room</h2><p>Camera, screen or media source → face driver → authorized voice → processed output → call or stream transport.</p></div><div className="engineHealth"><span className={worker==='online'?'good':''}/><b>{worker==='online'?'PROCESSOR ONLINE':'PROCESSOR '+worker.toUpperCase()}</b><small>GPU media worker</small></div></div>
-  <WorkerConsole/>
   {showAvatar&&<AvatarStudio onReady={a=>{setAvatar(a);if(a?.stream)streamRef.current=a.stream;addLog('Avatar target ready: '+a.name,'success')}}/>}
   <div className="sceneStrip"><div className="sceneTitle"><span>SCENES</span><small>Recall studio configurations</small></div>{['call','stream','screen','media'].map((x,index)=><button ref={el=>sceneRefs.current[index]=el} key={x} className={scene===x?'active':''} aria-pressed={scene===x} onClick={()=>{setScene(x);setMode(x==='stream'||x==='media'?'stream':'call')}} onKeyDown={e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();moveScene(index,1)}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();moveScene(index,-1)}else if(e.key==='Home'){e.preventDefault();sceneRefs.current[0]?.focus()}else if(e.key==='End'){e.preventDefault();sceneRefs.current[3]?.focus()}}}>{x==='call'?'Video Call':x==='stream'?'Live Stream':x==='screen'?'Screen Studio':'Media Playback'}</button>)}<button className="saveScene" onClick={saveScene}><Save size={14}/> Save</button></div>
   <div className="engineTabs"><button className={mode==='call'?'active':''} onClick={()=>setMode('call')}><Phone size={15}/> Video Call</button><button className={mode==='stream'?'active':''} onClick={()=>setMode('stream')}><Radio size={15}/> Live Stream</button><button className={mode==='pipeline'?'active':''} onClick={()=>setMode('pipeline')}><SlidersHorizontal size={15}/> Pipeline</button></div>
@@ -77,6 +76,16 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
    <div className="commandStatus"><span className="statusDot"/> ENGINE READY <i/> <span>{destination?('DESTINATION: '+destination.toUpperCase()):'NO DESTINATION'}</span></div>
    <div className="commandActions"><button onClick={()=>addLog('Session workspace checked','info')}><RefreshCw size={13}/> Check</button><button onClick={()=>setShowAvatar(v=>!v)}><ImageIcon size={13}/> Avatar</button></div>
   </div>
+  <section className="studioAssetBin" aria-label="Project media browser">
+   <div className="assetBinHead"><div><span>PROJECT BIN</span><b>Media & source assets</b><small>Local project assets stay in this browser session until you choose a transport.</small></div><div className="assetBinActions"><button onClick={()=>fileRef.current?.click()}><Upload size={12}/> Import video</button><button onClick={()=>document.getElementById('avatar-target-input')?.click()}><FolderOpen size={12}/> Add portrait</button></div></div>
+   <div className="assetCards">
+    <button className={'assetCard '+(camera?'selected':'')} onClick={startCamera}><span className="assetThumb camera"><Camera size={18}/></span><span><b>Camera source</b><small>{camera?'LIVE · 30 FPS':'Device camera'}</small></span><i>{camera?'LIVE':'READY'}</i></button>
+    <button className={'assetCard '+(screen?'selected':'')} onClick={startScreen}><span className="assetThumb screen"><MonitorUp size={18}/></span><span><b>Screen / Window</b><small>{screen?'CAPTURING':'Desktop input'}</small></span><i>{screen?'LIVE':'READY'}</i></button>
+    <button className={'assetCard '+(media?'selected':'')} onClick={()=>fileRef.current?.click()}><span className="assetThumb media"><Film size={18}/></span><span><b>{media?.name||'Media clip'}</b><small>{media?'Imported local video':'No clip imported'}</small></span><i>{media?'LOADED':'EMPTY'}</i></button>
+    <button className={'assetCard '+(avatar?'selected':'')} onClick={()=>setShowAvatar(true)}><span className="assetThumb avatar"><ImageIcon size={18}/></span><span><b>{avatar?.name||'Portrait / avatar'}</b><small>{avatar?'Authorized target loaded':'Open Avatar Studio'}</small></span><i>{avatar?'READY':'OPEN'}</i></button>
+    <div className="assetCard static"><span className="assetThumb pipeline"><Layers3 size={18}/></span><span><b>Processing graph</b><small>Source → tracker → renderer → output</small></span><i>LIVE</i></div>
+   </div>
+  </section>
   <div className="engineGrid">
    <aside className="sourceRail" aria-label="Studio sources">
     <div className="railSectionTitle"><span>SOURCES</span><small>INPUTS</small></div>
@@ -102,6 +111,7 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
   </div>
   <div className="transportBar"><div><span>{mode==='call'?'CALL TRANSPORT':'STREAM TRANSPORT'}</span><b>{mode==='call'?callState.toUpperCase():streamState.toUpperCase()}</b></div><div className="transportInfo"><WifiOff size={14}/><span>Gateway: {gateway}</span><span>Worker: {worker}</span></div>{mode==='call'?<button className="primary" onClick={startCall}>{callState==='active'?<><Square size={14}/> End call</>:<><Phone size={14}/> Start video call</>}</button>:mode==='stream'?<button className="primary" onClick={startStream}>{streamState==='live'?<><Square size={14}/> Stop live</>:<><Radio size={14}/> Start live stream</>}</button>:<button className="primary" onClick={()=>addLog(worker==='online'?'Pipeline worker ready':'Connect the GPU worker before running inference',worker==='online'?'success':'error')}><Zap size={14}/> Run pipeline check</button>}</div>
   <div className="pipeline"><div className="pipelineHead"><div><span>PROCESSING CONVEYOR</span><b>Real-time face-driven output architecture</b></div><small>Camera → tracking → renderer → compositor → output</small></div><div className="pipelineNodes">{PIPELINE.map(([id,label],i)=><React.Fragment key={id}><div className={`node ${worker==='online'?'ready':''}`}><span>0{i+1}</span><b>{label}</b><small>{i===0?'Camera / file':i===1?'Detection':i===2?'Landmarks':i===3?'Face renderer':i===4?'Composite':i===5?'WebRTC / gateway':'Module'}</small></div>{i<PIPELINE.length-1&&<i className="pipe"/>}</React.Fragment>)}</div></div>
+  <WorkerConsole/>
   {savedScenes.length>0&&<div className="savedScenes"><span>SAVED SCENES</span>{savedScenes.map(s=><button key={s.id} onClick={()=>loadScene(s)}>{s.name}</button>)}</div>}<div className="engineLog"><div><span>SESSION LOG</span><b>Transport events</b></div>{log.length?log.map((x,i)=><div className={'logRow '+x.type} key={i}><code>{x.time}</code><span>{x.text}</span></div>):<div className="logEmpty">No session events yet.</div>}</div>
   <div className="engineFoot"><ShieldCheck size={15}/><span>Use only media, faces and accounts you are authorized to use. The MediaPipe tracking runs locally in the browser; the uploaded portrait is not claimed to be a neural face render until the GPU renderer is online.</span></div>
  </section>
