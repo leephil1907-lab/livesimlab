@@ -60,7 +60,20 @@ export default function Home() {
   const [destinationValue, setDestinationValue] = useState('');
   const [destinationConnected, setDestinationConnected] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const [mediaBrightness, setMediaBrightness] = useState(100);
+  const [mediaContrast, setMediaContrast] = useState(100);
+  const [mediaSaturation, setMediaSaturation] = useState(100);
+  const [mediaSpeed, setMediaSpeed] = useState(1);
+  const [mediaZoom, setMediaZoom] = useState(100);
+  const [mediaMirror, setMediaMirror] = useState(false);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [micLevel, setMicLevel] = useState(0);
+  const [micError, setMicError] = useState('');
   const mediaInputRef = useRef<HTMLInputElement>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const micAudioContextRef = useRef<AudioContext | null>(null);
+  const micAnalyserRef = useRef<AnalyserNode | null>(null);
+  const micFrameRef = useRef<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [orbLevel, setOrbLevel] = useState(0.08);
   const [orbSpeaking, setOrbSpeaking] = useState(false);
@@ -110,6 +123,63 @@ export default function Home() {
   const addEvent = (kind: string, text: string, level = 'info') => {
     setEventsShown(e => [[new Date().toLocaleTimeString([], {hour12:false}), kind, text, level], ...e].slice(0, 10));
   };
+
+  const toggleMicrophone = async () => {
+    if (micEnabled) {
+      micStreamRef.current?.getTracks().forEach(track => track.stop());
+      micStreamRef.current = null;
+      if (micFrameRef.current) cancelAnimationFrame(micFrameRef.current);
+      await micAudioContextRef.current?.close().catch(() => undefined);
+      micAudioContextRef.current = null;
+      micAnalyserRef.current = null;
+      setMicEnabled(false);
+      setMicLevel(0);
+      addEvent('MIC', 'Microphone stopped by user');
+      return;
+    }
+    setMicError('');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMicError('Microphone access is not supported in this browser.');
+      addEvent('MIC', 'Microphone API unavailable', 'warning');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      micStreamRef.current = stream;
+      const AudioCtx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = .75;
+        ctx.createMediaStreamSource(stream).connect(analyser);
+        micAudioContextRef.current = ctx;
+        micAnalyserRef.current = analyser;
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        const draw = () => {
+          if (!micAnalyserRef.current) return;
+          micAnalyserRef.current.getByteFrequencyData(data);
+          let sum = 0;
+          for (const n of data) sum += n;
+          setMicLevel(Math.min(1, (sum / data.length) / 255 * 3));
+          micFrameRef.current = requestAnimationFrame(draw);
+        };
+        draw();
+      }
+      setMicEnabled(true);
+      addEvent('MIC', 'Microphone permission granted and input enabled', 'success');
+    } catch (error) {
+      setMicError(error instanceof DOMException && error.name === 'NotAllowedError' ? 'Microphone permission was denied.' : 'Microphone could not be started.');
+      addEvent('MIC', 'Microphone access was not enabled', 'warning');
+    }
+  };
+
+  useEffect(() => () => {
+    micStreamRef.current?.getTracks().forEach(track => track.stop());
+    if (micFrameRef.current) cancelAnimationFrame(micFrameRef.current);
+    micAudioContextRef.current?.close().catch(() => undefined);
+    if (mediaUrl) URL.revokeObjectURL(mediaUrl);
+  }, [mediaUrl]);
 
   const startStream = () => {
     if (!destination) {
@@ -187,6 +257,12 @@ export default function Home() {
     }
   };
 
+  const mediaVisualStyle = {
+    filter: 'brightness(' + mediaBrightness + '%) contrast(' + mediaContrast + '%) saturate(' + mediaSaturation + '%)',
+    transform: 'scale(' + (mediaMirror ? -1 : 1) * (mediaZoom / 100) + ', ' + (mediaZoom / 100) + ')',
+    transition: 'filter .18s ease, transform .18s ease'
+  } as React.CSSProperties;
+
   return (
     <>
       {loading && <CounterCurtain onDone={()=>setLoading(false)} />}
@@ -242,7 +318,7 @@ export default function Home() {
               <div className="stageGrid"/>
               <div className="streamPreview">
                 <span className="liveBadge">{streaming ? '● SESSION ACTIVE' : destinationConnected ? 'DESTINATION READY' : 'CHOOSE A DESTINATION'}</span>
-                {mediaUrl ? <video src={mediaUrl} controls playsInline /> : <button className="outline" onClick={() => mediaInputRef.current?.click()}>Load video</button>}
+                {mediaUrl ? <video src={mediaUrl} controls playsInline style={mediaVisualStyle} onLoadedMetadata={e => { e.currentTarget.playbackRate = mediaSpeed; }} /> : <button className="outline" onClick={() => mediaInputRef.current?.click()}>Load video</button>}
                 <b>{mediaName || 'No media loaded'}</b>
                 <small>Local media only · simulation label remains visible</small>
                 <div className="streamWatermark">LIVE SIM LAB</div>
@@ -280,6 +356,30 @@ export default function Home() {
       </section>
 
       <section id="mediaLab" className="toolsGrid">
+        <div className="panel toolPanel mediaStudio">
+          <div className="panelHead"><div><p className="eyebrow">MEDIA STUDIO</p><h2>Video controls</h2></div><span className="tag">LOCAL / NON-DESTRUCTIVE</span></div>
+          <div className="toolBody">
+            <div className="mediaControlGrid">
+              <label>Brightness <span>{mediaBrightness}%</span><input type="range" min="50" max="150" value={mediaBrightness} onChange={e=>setMediaBrightness(Number(e.target.value))}/></label>
+              <label>Contrast <span>{mediaContrast}%</span><input type="range" min="50" max="150" value={mediaContrast} onChange={e=>setMediaContrast(Number(e.target.value))}/></label>
+              <label>Saturation <span>{mediaSaturation}%</span><input type="range" min="0" max="180" value={mediaSaturation} onChange={e=>setMediaSaturation(Number(e.target.value))}/></label>
+              <label>Zoom <span>{mediaZoom}%</span><input type="range" min="75" max="140" value={mediaZoom} onChange={e=>setMediaZoom(Number(e.target.value))}/></label>
+              <label>Playback speed <span>{mediaSpeed.toFixed(2)}×</span><input type="range" min=".5" max="2" step=".05" value={mediaSpeed} onChange={e=>setMediaSpeed(Number(e.target.value))}/></label>
+            </div>
+            <div className="mediaActions">
+              <button className={mediaMirror ? 'primaryBtn' : 'outline'} onClick={()=>setMediaMirror(v=>!v)}>{mediaMirror ? 'MIRROR ON' : 'MIRROR OFF'}</button>
+              <button className="outline" onClick={()=>{setMediaBrightness(100);setMediaContrast(100);setMediaSaturation(100);setMediaSpeed(1);setMediaZoom(100);setMediaMirror(false);addEvent('MEDIA','Video adjustments reset')}}>RESET EDITS</button>
+            </div>
+            <div className="micPanel">
+              <div><p className="eyebrow">MICROPHONE INPUT</p><h3>{micEnabled ? 'Microphone active' : 'Microphone ready'}</h3><small>Permission is requested only when you press the button. LiveSim Lab does not record or upload microphone audio.</small></div>
+              <div className="micMeter"><span style={{transform:'scaleX(' + Math.max(.02,micLevel) + ')'}}/></div>
+              <button className={micEnabled ? 'dangerBtn' : 'primaryBtn'} onClick={toggleMicrophone}>{micEnabled ? 'TURN MIC OFF' : 'ALLOW MICROPHONE'}</button>
+              {micError && <small className="micError">{micError}</small>}
+            </div>
+            <div className="editNote">These controls change local playback presentation. They do not alter the original video file or make a prerecorded person react to your movement.</div>
+          </div>
+        </div>
+
         <div className="panel toolPanel">
           <div className="panelHead"><div><p className="eyebrow">VOICE LAB</p><h2>Voice simulation</h2></div><span className="tag">AUTHORIZED / SYNTHETIC</span></div>
           <div className="toolBody">
