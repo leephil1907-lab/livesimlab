@@ -1,18 +1,23 @@
-import React from 'react';
+import React,{useState} from 'react';
 import {createRoot} from 'react-dom/client';
+import {Bell,CircleHelp,LayoutDashboard,Library,Radio,Settings,SlidersHorizontal,Sparkles,Video,Volume2} from 'lucide-react';
 import LiveSessionEngine from './LiveSessionEngine.jsx';
 import './live-engine.css';
 import './styles.css';
 
 function App(){
- return <div className="shell">
-  <header className="top">
-   <div className="brand"><div className="mark">LS</div><div><b>LiveSim Lab</b><small>MEDIA SESSION ENGINE</small></div></div>
-   <div className="safety"><span/> REAL TRANSPORT STATUS <i/> NO SIMULATED CONNECTIONS</div>
+ const [section,setSection]=useState('studio');
+ const nav=[['studio','Studio',LayoutDashboard],['calls','Calls',Video],['streams','Live',Radio],['voices','Voices',Volume2],['media','Media Library',Library],['settings','Settings',Settings]];
+ return <div className="studioApp">
+  <header className="studioTopbar">
+   <div className="studioBrand"><div className="studioLogo">LS</div><div><b>LiveSim Lab</b><span>VIRTUAL STUDIO</span></div></div>
+   <div className="studioMode"><Sparkles size={14}/> Production workspace</div>
+   <div className="studioTopActions"><span className="systemState"><i/> Control plane online</span><button aria-label="Help"><CircleHelp size={17}/></button><button aria-label="Notifications"><Bell size={17}/></button></div>
   </header>
-  <main><LiveSessionEngine/></main>
-  <footer style={{maxWidth:1440,margin:'0 auto',padding:'0 28px 48px',color:'#68736b',fontSize:11}}>LiveSim Lab · DeepFaceLive-inspired modular media pipeline · Vercel hosts the control plane; GPU inference and persistent media transport run through configured external workers.</footer>
+  <div className="studioBody">
+   <aside className="studioRail"><div className="railLabel">WORKSPACE</div>{nav.map(([id,label,Icon])=><button key={id} className={section===id?'active':''} onClick={()=>setSection(id)}><Icon size={17}/><span>{label}</span></button>)}<div className="railSpacer"/><div className="railStatus"><i/><span>Session engine<br/><b>Ready</b></span></div></aside>
+   <main className="studioMain">{section==='studio'?<LiveSessionEngine/>:<div className="workspacePlaceholder"><SlidersHorizontal size={24}/><h2>{nav.find(x=>x[0]===section)?.[1]}</h2><p>This workspace is connected to the LiveSim session engine. Open Studio to configure and run a live call or stream.</p><button onClick={()=>setSection('studio')}>Open Studio</button></div>}</main>
+  </div>
  </div>
 }
-
 createRoot(document.getElementById('root')).render(<App/>);
