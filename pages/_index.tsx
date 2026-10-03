@@ -18,47 +18,33 @@ function VoiceOrb({level,speaking}:{level:number;speaking:boolean}) {
   return <div className={'voiceOrb '+(speaking?'speaking':'idle')} style={{'--orb-level':scaled} as React.CSSProperties} aria-label={speaking?'Voice output active':'Voice output ready'}><div className='orbCore'><i/><i/><i/></div><div className='orbRing'/></div>;
 }
 
-const participants = [
-  { name: 'Alex Morgan', role: 'Host · simulated', state: 'synthetic', initials: 'AM' },
-  { name: 'Research Room', role: 'Observer', state: 'monitoring', initials: 'RR' },
-  { name: 'BTC Ledger Bot', role: 'Synthetic data', state: 'analysis', initials: 'BL' },
-];
-
-const baseEvents = [
-  ['21:57:08', 'STREAM', 'Playback loop started', 'info'],
-  ['21:57:14', 'CALL', 'Synthetic participant joined', 'success'],
-  ['21:57:22', 'BTC', 'Demo transaction parsed', 'warning'],
-  ['21:57:31', 'MEDIA', 'Frame marker inserted', 'info'],
-];
-
-const chat = [
-  ['@viewer_104', 'This is interesting'],
-  ['@viewer_882', 'Can you explain that again?'],
-  ['@viewer_231', 'Where did that transaction come from?'],
-  ['@viewer_517', '🔥🔥'],
-  ['@viewer_902', 'Is this happening right now?'],
-];
+type EventRow = [string, string, string, string];
 
 export default function Home() {
   const [playing, setPlaying] = useState(true);
   const [tab, setTab] = useState<Tab>('call');
   const [lab, setLab] = useState<Lab>('simulation');
-  const [scenario, setScenario] = useState('Synthetic investor call');
-  const [voice, setVoice] = useState('Synthetic Voice 01');
+  const [scenario, setScenario] = useState('');
+  const [voice, setVoice] = useState('');
   const [voiceStyle, setVoiceStyle] = useState<VoiceStyle>('Conversational');
   const [voiceSpeed, setVoiceSpeed] = useState(1);
-  const [eventsShown, setEventsShown] = useState(baseEvents);
+  const [eventsShown, setEventsShown] = useState<EventRow[]>([]);
   const [streaming, setStreaming] = useState(false);
-  const [viewers, setViewers] = useState(1284);
+  const [viewers, setViewers] = useState(0);
   const [voiceProfiles, setVoiceProfiles] = useState<VoiceProfile[]>([]);
   const [selectedProviderVoiceId, setSelectedProviderVoiceId] = useState('');
   const [cloneTitle, setCloneTitle] = useState('Authorized Voice Clone');
   const [authorizationConfirmed, setAuthorizationConfirmed] = useState(false);
   const [cloning, setCloning] = useState(false);
   const [synthesizing, setSynthesizing] = useState(false);
-  const [voiceText, setVoiceText] = useState('This is a controlled LiveSim Lab voice simulation.');
+  const [voiceText, setVoiceText] = useState('');
   const [voiceOutputUrl, setVoiceOutputUrl] = useState('');
   const [streamVoiceArmed, setStreamVoiceArmed] = useState(false);
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [mediaName, setMediaName] = useState('');
+  const [transactionRef, setTransactionRef] = useState('');
+  const [transactionAmount, setTransactionAmount] = useState('');
+  const mediaInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [orbLevel, setOrbLevel] = useState(0.08);
   const [orbSpeaking, setOrbSpeaking] = useState(false);
@@ -112,8 +98,21 @@ export default function Home() {
   const startStream = () => {
     const next = !streaming;
     setStreaming(next);
-    setViewers(next ? 1284 : 0);
-    addEvent('STREAM', next ? 'Synthetic livestream simulation started' : 'Synthetic livestream simulation stopped', next ? 'success' : 'info');
+    setViewers(0);
+    addEvent('STREAM', next ? 'Simulation session started' : 'Simulation session stopped', next ? 'success' : 'info');
+  };
+
+  const loadMedia = (file: File | undefined) => {
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      addEvent('MEDIA', 'Please select a video file.', 'warning');
+      return;
+    }
+    if (mediaUrl) URL.revokeObjectURL(mediaUrl);
+    const url = URL.createObjectURL(file);
+    setMediaUrl(url);
+    setMediaName(file.name);
+    addEvent('MEDIA', `Loaded media: ${file.name}`, 'success');
   };
 
   const cloneVoice = async (file: File | undefined) => {
@@ -174,14 +173,9 @@ export default function Home() {
           <p className="lede">A controlled environment for understanding simulated livestreams, video calls, synthetic voices, playback cues and synthetic Bitcoin activity—without impersonating real people, platforms or wallets.</p>
         </div>
         <div className="scenarioBox">
-          <label>SCENARIO</label>
-          <select value={scenario} onChange={e => { setScenario(e.target.value); addEvent('SCENARIO', 'Scenario changed to ' + e.target.value); }}>
-            <option>Synthetic investor call</option>
-            <option>Pre-recorded livestream</option>
-            <option>Video-call social engineering</option>
-            <option>Bitcoin transaction walkthrough</option>
-          </select>
-          <span>All identities, voices, audiences and transactions are synthetic or authorized for simulation.</span>
+          <label>SESSION INPUT</label>
+          <input value={scenario} onChange={e => setScenario(e.target.value)} placeholder="Name this research session" aria-label="Research session name" />
+          <span>Enter your own session context. Nothing is pre-populated or treated as pre-approved.</span>
         </div>
       </section>
 
@@ -202,28 +196,23 @@ export default function Home() {
             <div className="streamStage">
               <div className="stageGrid"/>
               <div className="streamPreview">
-                <span className="liveBadge">{streaming ? '● SIMULATED LIVE' : 'SIMULATION READY'}</span>
-                <div className="avatar">AM</div>
-                <b>Alex Morgan</b>
-                <small>synthetic presenter · not a real person</small>
+                <span className="liveBadge">{streaming ? '● SIMULATED SESSION' : 'READY FOR MEDIA'}</span>
+                {mediaUrl ? <video src={mediaUrl} controls playsInline /> : <button className="outline" onClick={() => mediaInputRef.current?.click()}>Load video</button>}
+                <b>{mediaName || 'No media loaded'}</b>
+                <small>Local media only · simulation label remains visible</small>
                 <div className="streamWatermark">LIVE SIM LAB</div>
               </div>
-              <div className="streamStats"><span>{streaming ? viewers.toLocaleString() : '—'} simulated viewers</span><span>{streaming ? '01:24:18' : '00:00:00'}</span></div>
-              <div className="chatOverlay">
-                <b>SIMULATED CHAT</b>
-                {chat.slice(0,3).map(([user,msg])=><div key={user}><strong>{user}</strong> {msg}</div>)}
-              </div>
+              <div className="streamStats"><span>{streaming ? '0 simulated viewers' : 'No audience connected'}</span><span>{streaming ? 'SESSION ACTIVE' : 'SESSION IDLE'}</span></div>
               {streamVoiceArmed && voiceOutputUrl && <div className="streamAudio"><span>VOICE OUTPUT ARMED · SIMULATION</span><audio controls src={voiceOutputUrl}/></div>}
             </div>
           ) : (
             <div className="stage">
               <div className="stageGrid"/>
               <div className="fakeVideo">
-                <div className="avatar">AM</div>
-                <div className="videoLabel"><b>Alex Morgan</b><span>AI-generated simulation · not a real person</span></div>
+                {mediaUrl ? <video src={mediaUrl} controls playsInline /> : <button className="outline" onClick={() => mediaInputRef.current?.click()}>Load video media</button>}
+                <div className="videoLabel"><b>{mediaName || 'No media loaded'}</b><span>Local media · simulation environment</span></div>
                 <div className="watermark">SIMULATED</div>
               </div>
-              <div className="miniCall"><span className="miniAvatar">RR</span><span>Research Room</span><i>Observer</i></div>
               <div className="mediaHud"><span>{playing ? '00:14:28' : '00:09:07'}</span><span>{progress}%</span></div>
             </div>
           )}
@@ -233,13 +222,13 @@ export default function Home() {
             <div className="scrub"><span style={{width: progress + '%'}}/></div>
             <span className="mono">{playing ? 'PLAYING' : 'PAUSED'}</span>
             {tab === 'stream' && <button className={streaming ? 'dangerBtn' : 'streamBtn'} onClick={startStream}>{streaming ? 'STOP SIM' : 'START SIM'}</button>}
-            <button onClick={()=>addEvent('MEDIA', playing?'Playback paused':'Playback resumed')}>MARK</button>
+            <button onClick={()=>addEvent('MEDIA', playing?'Playback paused':'Playback resumed')}>MARK EVENT</button>
           </div>
         </div>
 
         <aside className="panel participants">
-          <div className="panelHead"><h2>Participants</h2><span className="count">03</span></div>
-          {participants.map(p=><div className="participant" key={p.name}><span className="avatar small">{p.initials}</span><div><b>{p.name}</b><small>{p.role}</small></div><span className={'state ' + p.state}>{p.state}</span></div>)}
+          <div className="panelHead"><h2>Participants</h2><span className="count">{selectedProviderVoiceId ? '01' : '00'}</span></div>
+          {selectedProviderVoiceId ? <div className="participant"><span className="avatar small">VC</span><div><b>{voice || 'Authorized voice'}</b><small>authorized voice profile</small></div><span className="state synthetic">ready</span></div> : <div className="empty">No participant configured. Create or select an authorized voice profile to continue.</div>}
           <div className="rule"/>
           <div className="integrity"><span>◉</span><div><b>Integrity lock</b><small>No camera, microphone, wallet or identity data is captured.</small></div></div>
         </aside>
@@ -252,8 +241,9 @@ export default function Home() {
             <VoiceOrb level={orbLevel} speaking={orbSpeaking}/>
             <audio ref={audioRef} className="voiceAudioEngine" preload="auto" />
             <label>Voice profile</label>
-            <div className="voiceRow"><select value={voice} onChange={e=>{setVoice(e.target.value);const profile=voiceProfiles.find(p=>p.displayName===e.target.value);setSelectedProviderVoiceId(profile?.providerVoiceId ?? '');addEvent('VOICE','Voice profile selected: '+e.target.value)}}><option>Synthetic Voice 01</option><option>Synthetic Voice 02</option>{voiceProfiles.map(profile=><option key={profile.id}>{profile.displayName}</option>)}</select><button className="outline" onClick={()=>fileInputRef.current?.click()} disabled={cloning}>{cloning ? 'CLONING…' : 'Upload voice'}</button></div>
+            <div className="voiceRow"><select value={voice} onChange={e=>{setVoice(e.target.value);const profile=voiceProfiles.find(p=>p.displayName===e.target.value);setSelectedProviderVoiceId(profile?.providerVoiceId ?? '');addEvent('VOICE','Voice profile selected: '+e.target.value)}}><option value="">Select a saved voice</option>{voiceProfiles.map(profile=><option key={profile.id} value={profile.displayName}>{profile.displayName}</option>)}</select><button className="outline" onClick={()=>fileInputRef.current?.click()} disabled={cloning}>{cloning ? 'CLONING…' : 'Upload voice'}</button></div>
             <input ref={fileInputRef} className="hiddenFile" type="file" accept="audio/mpeg,audio/wav,audio/x-wav,audio/flac,audio/mp4,audio/x-m4a,audio/ogg,audio/webm" onChange={e=>cloneVoice(e.target.files?.[0])}/>
+            <input ref={mediaInputRef} className="hiddenFile" type="file" accept="video/*" onChange={e=>loadMedia(e.target.files?.[0])}/>
             <div className="cloneForm">
               <input value={cloneTitle} onChange={e=>setCloneTitle(e.target.value)} placeholder="Voice profile name" aria-label="Voice profile name"/>
               <label className="consent"><input type="checkbox" checked={authorizationConfirmed} onChange={e=>setAuthorizationConfirmed(e.target.checked)}/><span>I own this voice or have authorization to clone it.</span></label>
@@ -264,29 +254,31 @@ export default function Home() {
             <select value={voiceStyle} onChange={e=>setVoiceStyle(e.target.value as VoiceStyle)}><option>Conversational</option><option>Broadcast presenter</option><option>Analytical</option><option>Calm</option></select>
             <div className="sliderRow"><span>Speed</span><input type="range" min=".75" max="1.25" step=".05" value={voiceSpeed} onChange={e=>setVoiceSpeed(Number(e.target.value))}/><span>{voiceSpeed.toFixed(2)}×</span></div>
             <label>Speech to synthesize</label>
-            <textarea className="voiceText" value={voiceText} onChange={e=>setVoiceText(e.target.value)} rows={3}/>
-            <div className="voiceActions"><button className="outline" onClick={synthesizeVoice} disabled={synthesizing}>{synthesizing ? 'GENERATING…' : '▶ Generate preview'}</button><button className="primaryBtn" onClick={()=>{if(!voiceOutputUrl){addEvent('VOICE','Generate a preview before applying output','warning');return;}setStreamVoiceArmed(tab==='stream');addEvent('VOICE','Voice output armed for '+(tab==='stream'?'livestream simulation':'call simulation'),'success')}}>Apply to {tab}</button></div>
+            <textarea className="voiceText" value={voiceText} onChange={e=>setVoiceText(e.target.value)} placeholder="Enter the text you want the authorized voice to speak." rows={3}/>
+            <div className="voiceActions"><button className="outline" onClick={synthesizeVoice} disabled={synthesizing || !voiceText.trim()}>{synthesizing ? 'GENERATING…' : '▶ Generate speech'}</button><button className="primaryBtn" onClick={()=>{if(!voiceOutputUrl){addEvent('VOICE','Generate a preview before applying output','warning');return;}setStreamVoiceArmed(tab==='stream');addEvent('VOICE','Voice output armed for '+(tab==='stream'?'livestream simulation':'call simulation'),'success')}}>Apply to {tab}</button></div>
             {voiceOutputUrl && <div className="audioPreview"><span>FISH AUDIO OUTPUT · SIMULATED</span><audio controls src={voiceOutputUrl}/></div>}
             <small className="safetyNote">Voice cloning is limited to voices you own or are authorized to use. Generated speech remains marked as simulation.</small>
           </div>
         </div>
 
         <div className="panel toolPanel">
-          <div className="panelHead"><div><p className="eyebrow">LIVE STREAM LAB</p><h2>Audience simulation</h2></div><span className="tag">NO REAL VIEWERS</span></div>
+          <div className="panelHead"><div><p className="eyebrow">LIVE STREAM LAB</p><h2>Audience state</h2></div><span className="tag">NO REAL VIEWERS</span></div>
           <div className="toolBody">
-            <div className="metricRow"><div><b>{viewers.toLocaleString()}</b><small>simulated viewers</small></div><div><b>{chat.length}</b><small>chat events</small></div><div><b>04</b><small>stream markers</small></div></div>
-            <div className="chatList">{chat.map(([user,msg])=><div key={user}><strong>{user}</strong><span>{msg}</span></div>)}</div>
-            <div className="voiceActions"><button className="outline" onClick={()=>addEvent('CHAT','Synthetic chat burst generated')}>Generate chat burst</button><button className="outline" onClick={()=>addEvent('AUDIENCE','Synthetic viewer spike simulated')}>Simulate spike</button></div>
+            <div className="metricRow"><div><b>{viewers}</b><small>simulated viewers</small></div><div><b>{eventsShown.length}</b><small>recorded events</small></div><div><b>{streaming ? 'ON' : 'OFF'}</b><small>session state</small></div></div>
+            <div className="empty">No audience, chat, reactions or donations are fabricated. Connect an approved research data source later if you need those measurements.</div>
           </div>
         </div>
       </section>
 
       <section className="lower">
         <div className="panel ledger">
-          <div className="panelHead"><div><p className="eyebrow">SYNTHETIC LEDGER</p><h2>Bitcoin activity</h2></div><span className="tag yellow">DEMO DATA</span></div>
-          <div className="tx"><div className="coin">₿</div><div><b>bc1q…7m2k</b><small>synthetic sender → synthetic receiver</small></div><strong>0.018420 BTC</strong></div>
-          <div className="txMeta"><span>TX DEMO-7F2A</span><span>6 confirmations (simulated)</span><span>Fee 0.000012 BTC</span></div>
-          <button className="outline" onClick={()=>addEvent('BTC','Synthetic transaction inspected','warning')}>Inspect synthetic transaction</button>
+          <div className="panelHead"><div><p className="eyebrow">TRANSACTION INPUT</p><h2>Bitcoin analysis</h2></div><span className="tag yellow">USER PROVIDED</span></div>
+          <div className="cloneForm">
+            <input value={transactionRef} onChange={e=>setTransactionRef(e.target.value)} placeholder="Synthetic transaction ID or reference" aria-label="Transaction reference"/>
+            <input value={transactionAmount} onChange={e=>setTransactionAmount(e.target.value)} placeholder="Amount in BTC (optional)" inputMode="decimal" aria-label="Transaction amount"/>
+          </div>
+          <div className="tx"><div className="coin">₿</div><div><b>{transactionRef || 'No transaction supplied'}</b><small>LiveSim Lab accepts user-provided synthetic transaction data only.</small></div><strong>{transactionAmount ? transactionAmount + ' BTC' : '—'}</strong></div>
+          <button className="outline" disabled={!transactionRef.trim()} onClick={()=>addEvent('BTC','User-provided transaction reference recorded for analysis','warning')}>Record for analysis</button>
         </div>
         <div className="panel logs">
           <div className="panelHead"><div><p className="eyebrow">EVENT LOG</p><h2>Timeline</h2></div><button className="ghost" onClick={()=>setEventsShown([])}>Clear</button></div>
