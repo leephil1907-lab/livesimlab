@@ -16,7 +16,7 @@ export const providers = {
     clientId: () => process.env.LIVESIM_ZOOM_CLIENT_ID,
     clientSecret: () => process.env.LIVESIM_ZOOM_CLIENT_SECRET,
     redirect: req => process.env.LIVESIM_ZOOM_REDIRECT_URI || `${origin("LIVESIM_PUBLIC_ORIGIN", req)}/api/oauth/callback?provider=zoom`,
-    scopes: () => process.env.LIVESIM_ZOOM_SCOPES || "user:read user:read:token",
+    scopes: () => process.env.LIVESIM_ZOOM_SCOPES || "user:read meeting:read meeting:write",
     authorize: "https://zoom.us/oauth/authorize",
     token: "https://zoom.us/oauth/token",
     profile: "https://api.zoom.us/v2/users/me"
