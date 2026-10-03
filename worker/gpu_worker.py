@@ -3,9 +3,11 @@ import os,time,uuid,asyncio,json
 from typing import Dict
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect,HTTPException,UploadFile,File
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from realtime_deep_live import RealtimeRenderer
 
 app=FastAPI(title="LiveSim Lab GPU Media Worker")
+app.add_middleware(CORSMiddleware, allow_origins=os.getenv("LIVESIM_GPU_CORS","*").split(","), allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 sessions: Dict[str,dict]={}
 renderers: Dict[str,RealtimeRenderer]={}
 RENDERER=os.getenv("LIVE_RENDERER_BACKEND","deep-live-cam")
