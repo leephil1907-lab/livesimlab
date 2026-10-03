@@ -1,0 +1,12 @@
+{
+  "name": "LiveSim Lab — Media Simulation Console",
+  "short_name": "LiveSim Lab",
+  "description": "A transparent media simulation and research environment for studying livestreams, video calls, synthetic media, and platform workflows.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090b0a",
+  "theme_color": "#090b0a",
+  "icons": [
+    {"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
