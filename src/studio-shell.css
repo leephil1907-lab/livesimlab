@@ -36,3 +36,4 @@
 .workspacePlaceholder button{background:var(--studio-cyan);color:#081017;border-radius:9px}
 @media(max-width:1050px){.studioBody{grid-template-columns:76px minmax(0,1fr)}}
 @media(max-width:680px){.studioRail{background:rgba(12,15,21,.97);border-color:var(--studio-line)}.studioRail>button.active{background:var(--studio-cyan)}}
+
