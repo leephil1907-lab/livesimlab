@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 
-export default function MediaBridgeClient(){
+export default function MediaBridgeClient({canvasRef}){
  const [status,setStatus]=useState('offline');
  const [frames,setFrames]=useState(0);
  const ws=useRef(null),timer=useRef(null),last=useRef(0);
@@ -15,7 +15,7 @@ export default function MediaBridgeClient(){
    }catch{setStatus('error');timer.current=setTimeout(connect,2500)}
   };
   const publish=()=>{
-   const canvas=document.querySelector('.avatarOutputCanvas'),s=ws.current;
+   const canvas=canvasRef?.current,s=ws.current;
    if(canvas&&s?.readyState===1){const now=performance.now();
     if(now-last.current>32){last.current=now;canvas.toBlob(blob=>{
       if(blob&&ws.current?.readyState===1){ws.current.send(blob);setFrames(n=>n+1)}
