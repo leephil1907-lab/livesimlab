@@ -2,6 +2,7 @@ import React,{useRef,useState} from 'react';
 import {Camera,Check,ChevronDown,Download,Film,Gauge,Layers,Mic,Play,Radio,ShieldCheck,SlidersHorizontal,Upload,Video,Volume2,Wifi,X,Zap} from 'lucide-react';
 import './deep-live-cam.css';
 
+const WORKER=import.meta.env.VITE_DEEP_LIVE_WORKER_URL||'/api/deep-live';
 const PROVIDERS=[['cpu','CPU'],['cuda','NVIDIA CUDA'],['directml','Windows DirectML'],['coreml','Apple CoreML'],['openvino','Intel OpenVINO']];
 const DEFAULTS={enhance:true,manyFaces:false,mouthMask:false,keepFps:true,keepAudio:true,keepFrames:false,encoder:'libx264',quality:23,provider:'cpu'};
 
@@ -10,9 +11,9 @@ export default function DeepLiveCamLab(){
  const [source,setSource]=useState(null),[target,setTarget]=useState(null),[live,setLive]=useState(false),[busy,setBusy]=useState(false),[settings,setSettings]=useState(DEFAULTS),[result,setResult]=useState(null),[error,setError]=useState(''),[worker,setWorker]=useState('unknown');
  const patch=(p)=>setSettings(s=>({...s,...p}));
  const file=(setter)=>e=>{const f=e.target.files?.[0];if(f)setter({name:f.name,url:URL.createObjectURL(f),file:f})};
- const probe=async()=>{try{const r=await fetch('/api/deep-live/health');setWorker(r.ok?'online':'offline')}catch{setWorker('offline')}};
+ const probe=async()=>{try{const r=await fetch(`${WORKER}/health`);setWorker(r.ok?'online':'offline')}catch{setWorker('offline')}};
  React.useEffect(()=>{probe()},[]);
- const process=async()=>{setError('');setResult(null);if(!source||!target){setError('Choose a source face and target media first.');return}setBusy(true);try{const fd=new FormData();fd.append('source',source.file);fd.append('target',target.file);Object.entries(settings).forEach(([k,v])=>fd.append(k,String(v)));const r=await fetch('/api/deep-live/process',{method:'POST',body:fd});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Deep Live Cam worker is not connected.');setResult(d)}catch(e){setError(e.message)}finally{setBusy(false)}};
+ const process=async()=>{setError('');setResult(null);if(!source||!target){setError('Choose a source face and target media first.');return}setBusy(true);try{const fd=new FormData();fd.append('source',source.file);fd.append('target',target.file);Object.entries(settings).forEach(([k,v])=>fd.append(k,String(v)));const r=await fetch(`${WORKER}/process`,{method:'POST',body:fd});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||d.error||'Deep Live Cam worker is not connected.');setResult({...d,url:d.url?.startsWith('http')?d.url:`${WORKER}${d.url}`})}catch(e){setError(e.message)}finally{setBusy(false)}};
  const toggleLive=async()=>{if(live){setLive(false);cameraRef.current?.srcObject?.getTracks().forEach(t=>t.stop());cameraRef.current.srcObject=null;return}try{const s=await navigator.mediaDevices.getUserMedia({video:true,audio:true});cameraRef.current.srcObject=s;setLive(true)}catch(e){setError(e?.name==='NotAllowedError'?'Camera permission was denied.':'Camera could not be started.')} };
  return <section className="dlcLab">
   <div className="dlcHead"><div><span className="dlcKicker">DEEP-LIVE CAM INTEGRATION</span><h2>Live face & media processor</h2><p>Imported as a dedicated processing workspace. The browser handles media selection and preview; GPU inference runs only through an explicitly configured Deep-Live-Cam worker.</p></div><div className={`worker ${worker}`}><i/>{worker==='online'?'ENGINE CONNECTED':worker==='offline'?'ENGINE OFFLINE':'CHECKING ENGINE'}</div></div>
