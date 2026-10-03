@@ -14,6 +14,7 @@ import './voice-bridge.css';
 import './platform-console.css';
 import './styles.css';
 import './studio-shell.css';
+import './worker-mesh.css';
 
 function App(){
  const [section,setSection]=useState('studio');
