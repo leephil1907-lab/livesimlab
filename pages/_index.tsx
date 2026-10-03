@@ -175,7 +175,7 @@ export default function Home() {
         <div className="scenarioBox">
           <label>SESSION INPUT</label>
           <input value={scenario} onChange={e => setScenario(e.target.value)} placeholder="Name this research session" aria-label="Research session name" />
-          <span>Enter your own session context. Nothing is pre-populated or treated as pre-approved.</span>
+          <span>Enter your own session context. Nothing is pre-populated or automatically authorized.</span>
         </div>
       </section>
 
@@ -265,7 +265,7 @@ export default function Home() {
           <div className="panelHead"><div><p className="eyebrow">LIVE STREAM LAB</p><h2>Audience state</h2></div><span className="tag">NO REAL VIEWERS</span></div>
           <div className="toolBody">
             <div className="metricRow"><div><b>{viewers}</b><small>simulated viewers</small></div><div><b>{eventsShown.length}</b><small>recorded events</small></div><div><b>{streaming ? 'ON' : 'OFF'}</b><small>session state</small></div></div>
-            <div className="empty">No audience, chat, reactions or donations are fabricated. Connect an approved research data source later if you need those measurements.</div>
+            <div className="empty">No audience, chat, reactions or donations are fabricated. Connect a configured research data source later if you need those measurements.</div>
           </div>
         </div>
       </section>
