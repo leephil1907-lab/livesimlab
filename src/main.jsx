@@ -4,6 +4,7 @@ import {Bell,CircleHelp,LayoutDashboard,Library,Radio,Settings,SlidersHorizontal
 import LiveSessionEngine from './LiveSessionEngine.jsx';
 import './live-engine.css';
 import './styles.css';
+import './studio-shell.css';
 
 function App(){
  const [section,setSection]=useState('studio');
