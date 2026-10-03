@@ -6,7 +6,7 @@ A transparent video-call and livestream simulation lab for education and securit
 
 - User-supplied video media for controlled call and livestream research
 - Clearly labeled synthetic, pre-recorded, or user-supplied media
-- User-configured participant and voice state
+- Authorized voice workflows
 - Playback and audit markers
 - User-provided synthetic Bitcoin transaction analysis
 - Event/timeline logging
@@ -14,18 +14,54 @@ A transparent video-call and livestream simulation lab for education and securit
 
 ## Safety boundary
 
-This project uses synthetic identities and synthetic Bitcoin data for research. It does not capture credentials, wallets, cameras, microphones, or real transaction signatures, and it does not present simulated media as genuinely live.
+LiveSim Lab is a simulation/research environment. It does not capture real credentials, wallets, camera video, or real transaction signatures, and it does not present simulated media as genuinely live.
 
-Voice cloning is restricted to voices the user owns or is authorized to use. Fish Audio credentials remain server-side and are never stored in the client or repository.
+Voice cloning is restricted to voices the user owns or is authorized to use. Provider credentials remain server-side and must never be committed to the repository.
 
-## Input model
+## Platform connection model
 
-LiveSim Lab does not ship with fabricated participants, viewer counts, chat messages, transaction IDs, voice profiles, or pre-approved session actions. Users provide the media, authorized voice, session context, and synthetic transaction data they want to analyze.
+The connection center now has a real server-side OAuth path for:
+
+- **Google Meet / Google account:** OAuth 2.0 authorization with server-side code exchange.
+- **Zoom:** user-managed OAuth 2.0 authorization with server-side code exchange.
+- **TikTok:** TikTok Login Kit OAuth 2.0 authorization with server-side code exchange.
+
+The callback validates an anti-CSRF state value, exchanges the authorization code server-side, retrieves the authorized account profile, and exposes only non-secret account metadata to the React client.
+
+WhatsApp and Telegram are intentionally **not** treated as generic OAuth providers. Their official web authorization/product models differ, so LiveSim Lab does not fake a connection flow for them. Dedicated adapters should be added only against the exact approved product/API capability.
+
+## Token storage
+
+For this repository-stage implementation, the connection record is sealed with AES-256-GCM and placed in an HTTP-only, Secure, SameSite cookie. The React application never receives the raw access or refresh token.
+
+For a multi-user production launch, replace this cookie-based token store with an authenticated server-side database/KMS-backed token store and implement token refresh/revocation there. Do not use the current cookie store as the final multi-tenant credential architecture.
+
+## Environment
+
+Copy `.env.example` into the deployment environment. Configure the exact callback URL in each provider's developer console.
+
+Required:
+
+- `LIVESIM_SESSION_SECRET` — random secret, at least 32 characters.
+- Provider client credentials for Google, Zoom, and/or TikTok.
+
+Never commit `.env`, client secrets, access tokens, refresh tokens, or provider credentials.
+
+## Local build
+
+```bash
+npm install
+npm run build
+```
 
 ## Current UI
 
-The application is developed in Floot and mirrored here for version control.
+The frontend is a standalone Vite + React application. It does **not** depend on Floot.
 
-## License
+## Research boundary
 
-Add the project's preferred license before public distribution.
+- Synthetic media stays visibly labeled.
+- User-supplied inputs remain explicit.
+- Authorized voices only.
+- OAuth tokens are never exposed to client JavaScript.
+- No real wallet signing or transaction execution.
