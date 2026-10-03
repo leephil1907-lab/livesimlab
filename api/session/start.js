@@ -1,11 +1,11 @@
 import crypto from "node:crypto";
 import { parseCookies, seal, unseal, setCookie } from "../_lib/security.js";
-import { googleStart, zoomStart, tiktokCreatorInfo } from "../_lib/platforms.js";
+import { googleStart, zoomStart, tiktokCreatorInfo, refreshConnection } from "../_lib/platforms.js";
 
 export default function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST required." });
 
-  const connection = unseal(parseCookies(req).livesim_connection);
+  let connection = unseal(parseCookies(req).livesim_connection);
   if (!connection) return res.status(401).json({ error: "No authorized destination connection." });
 
   let body = {};
@@ -19,7 +19,7 @@ export default function handler(req, res) {
     return res.status(409).json({ error: "Destination does not match the authorized account." });
   }
 
-  let platform = null;
+  if (connection.expiresAt && connection.expiresAt < Date.now() + 60_000 && connection.refreshToken) {\n    try { connection = await refreshConnection(connection); res.setHeader("Set-Cookie", setCookie("livesim_connection", seal(connection, 60 * 60 * 24 * 30), 60 * 60 * 24 * 30)); }\n    catch (error) { return res.status(401).json({ error: "The destination authorization expired and could not be refreshed. Reconnect the account." }); }\n  }\n\n  let platform = null;
   try {
     if (destination === "google") platform = await googleStart(connection);
     else if (destination === "zoom") platform = await zoomStart(connection, { topic: mediaName });
@@ -32,7 +32,7 @@ export default function handler(req, res) {
   const session = {
     id: "ls_" + crypto.randomBytes(12).toString("hex"),
     status: "ready",
-    mode: "simulation",
+    mode: "external-platform",
     mediaName,
     voiceProfileId,
     destination: connection.provider,
