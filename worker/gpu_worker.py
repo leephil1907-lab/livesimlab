@@ -1,7 +1,7 @@
 """LiveSim Lab persistent GPU media worker."""
 import os,time,uuid,asyncio,json
 from typing import Dict
-from fastapi import FastAPI,WebSocket,WebSocketDisconnect,HTTPException
+from fastapi import FastAPI,WebSocket,WebSocketDisconnect,HTTPException,UploadFile,File
 from fastapi.responses import JSONResponse
 from realtime_deep_live import RealtimeRenderer
 
@@ -33,6 +33,19 @@ def create_session():
     sessions[sid]={"created":time.time(),"frames":0,"last_frame":0,"status":status}
     return {"sessionId":sid,"status":status,"renderer":RENDERER,"gpuProvider":GPU_PROVIDER}
 
+@app.post("/sessions/{sid}/source")
+async def set_source(sid:str,source:UploadFile=File(...)):
+    renderer=renderers.get(sid)
+    if not renderer: raise HTTPException(404,"GPU renderer session not found")
+    payload=await source.read()
+    frame=renderer.decode(payload)
+    if frame is None: raise HTTPException(400,"Invalid avatar image")
+    try:
+        renderer.set_source(frame)
+    except Exception as exc:
+        raise HTTPException(400,str(exc))
+    sessions[sid]["status"]="source-ready"
+    return {"ok":True,"status":"source-ready"}
 @app.get("/sessions/{sid}")
 def session_status(sid:str):
     s=sessions.get(sid)
