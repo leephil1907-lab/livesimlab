@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { parseCookies, seal, unseal, setCookie } from "../_lib/security.js";
 import { googleStart, zoomStart, tiktokCreatorInfo, refreshConnection } from "../_lib/platforms.js";
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST required." });
 
   let connection = unseal(parseCookies(req).livesim_connection);
