@@ -66,6 +66,7 @@ export default function handler(req,res){
       browserTracking:true,
       neuralFaceSwap:Boolean(process.env.LIVESIM_GPU_WORKER_URL),
       voiceTTS:Boolean(process.env.LIVESIM_VOICE_WORKER_URL),
+      liveVoiceConversion:Boolean(process.env.LIVESIM_VOICE_CONVERTER_URL),
       obsBridge:true,
       virtualCamera:true,
       nativeZoomProductionStudio:"desktop-sdk-required"
