@@ -6,6 +6,7 @@ import ObsBridge from './ObsBridge.jsx';
 import MediaBridgeClient from './MediaBridgeClient.jsx';
 import VoiceBridge from './VoiceBridge.jsx';
 import PlatformConsole from './PlatformConsole.jsx';
+import WorkerMesh from './WorkerMesh.jsx';
 import WorkerConsole from './WorkerConsole.jsx';
 import './live-engine.css';
 import './obs-bridge.css';
