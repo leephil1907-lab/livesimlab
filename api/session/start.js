@@ -19,7 +19,12 @@ export default function handler(req, res) {
     return res.status(409).json({ error: "Destination does not match the authorized account." });
   }
 
-  if (connection.expiresAt && connection.expiresAt < Date.now() + 60_000 && connection.refreshToken) {\n    try { connection = await refreshConnection(connection); res.setHeader("Set-Cookie", setCookie("livesim_connection", seal(connection, 60 * 60 * 24 * 30), 60 * 60 * 24 * 30)); }\n    catch (error) { return res.status(401).json({ error: "The destination authorization expired and could not be refreshed. Reconnect the account." }); }\n  }\n\n  let platform = null;
+  if (connection.expiresAt && connection.expiresAt < Date.now() + 60_000 && connection.refreshToken) {
+    try { connection = await refreshConnection(connection); res.setHeader("Set-Cookie", setCookie("livesim_connection", seal(connection, 60 * 60 * 24 * 30), 60 * 60 * 24 * 30)); }
+    catch (error) { return res.status(401).json({ error: "The destination authorization expired and could not be refreshed. Reconnect the account." }); }
+  }
+
+  let platform = null;
   try {
     if (destination === "google") platform = await googleStart(connection);
     else if (destination === "zoom") platform = await zoomStart(connection, { topic: mediaName });
@@ -50,6 +55,7 @@ export default function handler(req, res) {
     voiceProfileId: session.voiceProfileId,
     destination: session.destination,
     startedAt: session.startedAt,
+    transport: platform?.mediaInjection === "sdk_or_virtual_camera" || platform?.mediaInjection === "not_supported_by_google_meet_media_api" ? "obs-virtual-camera" : platform?.mediaInjection,
     platform
   });
 }
