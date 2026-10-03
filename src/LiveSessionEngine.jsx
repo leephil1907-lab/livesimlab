@@ -1,6 +1,8 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {getStored} from './lib/storage.js';
 import WorkerConsole from './WorkerConsole.jsx';
+import SetupAssistant from './SetupAssistant.jsx';
+import './setup-assistant.css';
 import {FaceDetector,ImageSegmenter,FilesetResolver} from '@mediapipe/tasks-vision';
 import {Camera,CameraOff,CircleDot,Mic,MicOff,MonitorUp,Phone,Radio,Save,ShieldCheck,SlidersHorizontal,Square,Upload,Video,Volume2,Wifi,WifiOff,X,Zap,Image as ImageIcon,Play,Pause,RefreshCw,ExternalLink,FolderOpen,Film,Layers3} from 'lucide-react';
 
@@ -48,6 +50,11 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
  const env={worker:import.meta.env.VITE_LIVESIM_GPU_WORKER_URL||import.meta.env.VITE_DEEP_LIVE_WORKER_URL||'',signal:import.meta.env.VITE_LIVESIM_SIGNAL_URL||'',whip:import.meta.env.VITE_LIVESIM_WHIP_URL||'',gateway:import.meta.env.VITE_LIVESIM_MEDIA_GATEWAY_URL||'http://127.0.0.1:8788'};
  useEffect(()=>{if(initialDestination&&initialDestination!==destination){setDestination(initialDestination);setConnected(false);setConnection(null);setDestinationNotice('Destination selected: '+initialDestination+'. Only this destination will be used for the next session.')}},[initialDestination]);
  const addLog=(text,type='info')=>setLog(x=>[{time:new Date().toLocaleTimeString([],{hour12:false}),text,type},...x].slice(0,10));
+ const sourceReady=Boolean(camera||screen||media||avatar);
+ const refreshChecks=()=>{setWorker('checking');setGateway('checking');addLog('Running setup checks…','info');window.setTimeout(()=>{const w=env.worker?fetch(env.worker.replace(/\\/$/,'')+'/health').then(r=>r.ok).catch(()=>false):Promise.resolve(false);const g=env.gateway?fetch(env.gateway.replace(/\\/$/,'')+'/health').then(r=>r.ok).catch(()=>false):Promise.resolve(false);Promise.all([w,g]).then(([okWorker,okGateway])=>{setWorker(okWorker?'online':'offline');setGateway(okGateway?'online':'offline');addLog('Setup checks refreshed','success')})},0)};
+ const runPreflight=()=>{const checks=[camera,obsReadyRef.current,worker==='online',Boolean(voice),Boolean(destination)];const first=checks.findIndex(x=>!x);if(first<0){addLog('Preflight passed: all five setup checks are ready','success');return true}const labels=['Camera','OBS','GPU worker','Authorized voice','Destination'];addLog('Preflight blocked at '+labels[first]+'. Fix that item in Setup Assistant.','error');return false};
+ const obsReadyRef=useRef(false);
+
  useEffect(()=>{Promise.all([env.worker?fetch(env.worker.replace(/\/$/,'')+'/health').then(r=>r.ok):Promise.resolve(false),env.gateway?fetch(env.gateway.replace(/\/$/,'')+'/health').then(r=>r.ok):Promise.resolve(false),fetch('/api/connections').then(r=>r.ok?r.json():{connected:false}).catch(()=>({connected:false}))]).then(([w,g,c])=>{setWorker(w?'online':'offline');setGateway(g?'online':'offline');if(c?.connected){setConnection(c);setConnected(true)}}).catch(()=>{setWorker('offline');setGateway('offline')});const q=new URLSearchParams(window.location.search);const provider=q.get('connected');if(provider){fetch('/api/connections').then(r=>r.json()).then(c=>{if(c?.connected){setConnection(c);setConnected(true)};addLog((c?.label||provider)+' account connected','success')}).catch(()=>{});window.history.replaceState({},'',window.location.pathname+window.location.hash)}return()=>cleanup()},[]);
  const cleanup=()=>{streamRef.current?.getTracks().forEach(t=>t.stop());if(raf.current)cancelAnimationFrame(raf.current);audioRef.current?.close?.().catch?.(()=>{});socket.current?.close?.();pc.current?.close?.()};
  const startCamera=async()=>{if(camera){streamRef.current?.getTracks().filter(t=>t.kind==='video').forEach(t=>t.stop());setCamera(false);addLog('Camera source stopped');return}try{const s=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30}},audio:false});streamRef.current=s;cameraRef.current.srcObject=s;setCamera(true);addLog('Camera source connected','success')}catch(e){addLog(e?.name==='NotAllowedError'?'Camera permission denied':'Camera source unavailable','error')}};
@@ -93,6 +100,20 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
     <div className="guideLegend"><span><i className="dot good"/>GREEN = ready/connected</span><span><i className="dot warn"/>AMBER = needs configuration</span><span><i className="dot bad"/>RED = stop and troubleshoot</span><span><i className="dot info"/>BLUE = information only</span></div>
    </div>
   </details>
+  <SetupAssistant
+   camera={camera}
+   worker={worker}
+   gateway={gateway}
+   destination={destination}
+   voice={voice}
+   sourceReady={sourceReady}
+   onStartCamera={startCamera}
+   onWorkerHelp={()=>addLog('GPU worker offline. Start the configured LiveSim GPU worker on the workstation, then press Refresh checks.','error')}
+   onDestination={()=>document.querySelector('.engineSide .platformGrid button')?.focus()}
+   onVoice={()=>document.querySelector('.voiceLine input')?.focus()}
+   onRefresh={refreshChecks}
+   onPreflight={runPreflight}
+  />
   <section className="studioAssetBin" aria-label="Project media browser">
    <div className="assetBinHead"><div><span>PROJECT BIN</span><b>Media & source assets</b><small>Local project assets stay in this browser session until you choose a transport.</small></div><div className="assetBinActions"><button onClick={()=>fileRef.current?.click()}><Upload size={12}/> Import video</button><button onClick={()=>document.getElementById('avatar-target-input')?.click()}><FolderOpen size={12}/> Add portrait</button></div></div>
    <div className="assetCards">
@@ -128,7 +149,7 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
   </div>
   <div className="transportBar"><div><span>{mode==='call'?'CALL TRANSPORT':'STREAM TRANSPORT'}</span><b>{mode==='call'?callState.toUpperCase():streamState.toUpperCase()}</b></div><div className="transportInfo"><WifiOff size={14}/><span>Gateway: {gateway}</span><span>Worker: {worker}</span></div>{mode==='call'?<button className="primary" onClick={startCall}>{callState==='active'?<><Square size={14}/> End call</>:<><Phone size={14}/> Start video call</>}</button>:mode==='stream'?<button className="primary" onClick={startStream}>{streamState==='live'?<><Square size={14}/> Stop live</>:<><Radio size={14}/> Start live stream</>}</button>:<button className="primary" onClick={()=>addLog(worker==='online'?'Pipeline worker ready':'Connect the GPU worker before running inference',worker==='online'?'success':'error')}><Zap size={14}/> Run pipeline check</button>}</div>
   <div className="pipeline"><div className="pipelineHead"><div><span>PROCESSING CONVEYOR</span><b>Real-time face-driven output architecture</b></div><small>Camera → tracking → renderer → compositor → output</small></div><div className="pipelineNodes">{PIPELINE.map(([id,label],i)=><React.Fragment key={id}><div className={`node ${worker==='online'?'ready':''}`}><span>0{i+1}</span><b>{label}</b><small>{i===0?'Camera / file':i===1?'Detection':i===2?'Landmarks':i===3?'Face renderer':i===4?'Composite':i===5?'WebRTC / gateway':'Module'}</small></div>{i<PIPELINE.length-1&&<i className="pipe"/>}</React.Fragment>)}</div></div>
-  <WorkerConsole/>
+  <div id="worker-console"><WorkerConsole/></div>
   {savedScenes.length>0&&<div className="savedScenes"><span>SAVED SCENES</span>{savedScenes.map(s=><button key={s.id} onClick={()=>loadScene(s)}>{s.name}</button>)}</div>}<div className="engineLog"><div><span>SESSION LOG</span><b>Transport events</b></div>{log.length?log.map((x,i)=><div className={'logRow '+x.type} key={i}><code>{x.time}</code><span>{x.text}</span></div>):<div className="logEmpty">No session events yet.</div>}</div>
   <div className="engineFoot"><ShieldCheck size={15}/><span>Use only media, faces and accounts you are authorized to use. The MediaPipe tracking runs locally in the browser; the uploaded portrait is not claimed to be a neural face render until the GPU renderer is online.</span></div>
  </section>
