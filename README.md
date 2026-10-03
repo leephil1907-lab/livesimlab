@@ -36,6 +36,17 @@ For this repository-stage implementation, the connection record is sealed with A
 
 For a multi-user production launch, replace this cookie-based token store with an authenticated server-side database/KMS-backed token store and implement token refresh/revocation there. Do not use the current cookie store as the final multi-tenant credential architecture.
 
+## Session engine
+
+The session gate is now an authenticated orchestration boundary rather than a local toggle. A session can start only when:
+
+1. user-supplied media is loaded;
+2. an authorized voice profile is selected;
+3. a supported destination account is actually connected; and
+4. the selected destination matches the authenticated provider.
+
+The server creates a short-lived simulation session record, keeps the provider credential server-side, and returns only session metadata to the browser. Session state can be restored after a refresh and explicitly stopped. This does not claim to create or place a real call, livestream, transaction, or identity session on the external platform; provider-specific execution adapters remain a separate capability layer.
+
 ## Environment
 
 Copy `.env.example` into the deployment environment. Configure the exact callback URL in each provider's developer console.
