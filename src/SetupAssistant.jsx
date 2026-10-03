@@ -3,7 +3,7 @@ import {AlertTriangle,Camera,CheckCircle2,RefreshCw,ShieldCheck,Wifi,Zap} from '
 
 const OBS_URL='ws://127.0.0.1:4455';
 
-export default function SetupAssistant({camera,worker,gateway,destination,voice,sourceReady,onStartCamera,onWorkerHelp,onDestination,onVoice,onRefresh,onPreflight}){
+export default function SetupAssistant({camera,worker,gateway,destination,voice,sourceReady,onStartCamera,onWorkerHelp,onDestination,onVoice,onRefresh,onPreflight,onObsStatus}){
  const [obs,setObs]=useState('checking');
  const [obsVersion,setObsVersion]=useState('');
  const [checking,setChecking]=useState(false);
@@ -13,8 +13,8 @@ export default function SetupAssistant({camera,worker,gateway,destination,voice,
   let done=false;
   try{
    const ws=new WebSocket(OBS_URL);
-   const timer=setTimeout(()=>{if(!done){done=true;try{ws.close()}catch{};setObs('offline');setChecking(false)}},2200);
-   ws.onopen=()=>{if(done)return;clearTimeout(timer);done=true;setObs('online');setChecking(false);try{ws.close()}catch{}};
+   const timer=setTimeout(()=>{if(!done){done=true;try{ws.close()}catch{};setObs('offline');onObsStatus?.(false);setChecking(false)}},2200);
+   ws.onopen=()=>{if(done)return;clearTimeout(timer);done=true;setObs('online');onObsStatus?.(true);setChecking(false);try{ws.close()}catch{}};
    ws.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.op===0&&m.d?.obsWebSocketVersion)setObsVersion(m.d.obsWebSocketVersion)}catch{}};
    ws.onerror=()=>{if(done)return;clearTimeout(timer);done=true;setObs('offline');setChecking(false)};
    ws.onclose=()=>{if(!done){clearTimeout(timer);done=true;setObs('offline');setChecking(false)}};
