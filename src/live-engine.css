@@ -37,3 +37,5 @@ button:disabled{opacity:.55;cursor:not-allowed}
  .platformGrid{grid-template-columns:1fr}
  .stageActions{grid-template-columns:1fr}
 }
+
+.bgModes{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}.bgModes button{font-size:10px!important;min-height:34px!important}.bgModes button.selected{border-color:#62e6ff!important;color:#62e6ff!important;background:#15212a!important}@media(max-width:560px){.bgModes{grid-template-columns:1fr 1fr}}
