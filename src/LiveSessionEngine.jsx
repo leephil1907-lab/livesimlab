@@ -113,6 +113,7 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
    onVoice={()=>document.querySelector('.voiceLine input')?.focus()}
    onRefresh={refreshChecks}
    onPreflight={runPreflight}
+   onObsStatus={ok=>{obsReadyRef.current=ok}}
   />
   <section className="studioAssetBin" aria-label="Project media browser">
    <div className="assetBinHead"><div><span>PROJECT BIN</span><b>Media & source assets</b><small>Local project assets stay in this browser session until you choose a transport.</small></div><div className="assetBinActions"><button onClick={()=>fileRef.current?.click()}><Upload size={12}/> Import video</button><button onClick={()=>document.getElementById('avatar-target-input')?.click()}><FolderOpen size={12}/> Add portrait</button></div></div>
