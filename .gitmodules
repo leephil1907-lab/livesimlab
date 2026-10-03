@@ -1,0 +1,3 @@
+[submodule "vendor/DeepLiveCam"]
+	path = vendor/DeepLiveCam
+	url = https://github.com/lightbatis/DeepLiveCam.git
