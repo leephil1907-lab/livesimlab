@@ -1,5 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {getStored} from './lib/storage.js';
+import WorkerConsole from './WorkerConsole.jsx';
 import {FaceDetector,ImageSegmenter,FilesetResolver} from '@mediapipe/tasks-vision';
 import {Camera,CameraOff,CircleDot,Mic,MicOff,MonitorUp,Phone,Radio,Save,ShieldCheck,SlidersHorizontal,Square,Upload,Video,Volume2,Wifi,WifiOff,X,Zap,Image as ImageIcon,Play,Pause,RefreshCw,ExternalLink} from 'lucide-react';
 
@@ -67,6 +68,7 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
  const visual={filter:`brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`,transform:`scaleX(${mirror?-1:1})`};
  return <section className="liveEngine">
   <div className="engineHero"><div><span className="engineKicker">LIVESIM SESSION ENGINE / REAL-TIME AVATAR PIPELINE</span><h2>Video call + live streaming control room</h2><p>Camera, screen or media source → face driver → authorized voice → processed output → call or stream transport.</p></div><div className="engineHealth"><span className={worker==='online'?'good':''}/><b>{worker==='online'?'PROCESSOR ONLINE':'PROCESSOR '+worker.toUpperCase()}</b><small>GPU media worker</small></div></div>
+  <WorkerConsole/>
   {showAvatar&&<AvatarStudio onReady={a=>{setAvatar(a);if(a?.stream)streamRef.current=a.stream;addLog('Avatar target ready: '+a.name,'success')}}/>}
   <div className="sceneStrip"><div className="sceneTitle"><span>SCENES</span><small>Recall studio configurations</small></div>{['call','stream','screen','media'].map((x,index)=><button ref={el=>sceneRefs.current[index]=el} key={x} className={scene===x?'active':''} aria-pressed={scene===x} onClick={()=>{setScene(x);setMode(x==='stream'||x==='media'?'stream':'call')}} onKeyDown={e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();moveScene(index,1)}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();moveScene(index,-1)}else if(e.key==='Home'){e.preventDefault();sceneRefs.current[0]?.focus()}else if(e.key==='End'){e.preventDefault();sceneRefs.current[3]?.focus()}}}>{x==='call'?'Video Call':x==='stream'?'Live Stream':x==='screen'?'Screen Studio':'Media Playback'}</button>)}<button className="saveScene" onClick={saveScene}><Save size={14}/> Save</button></div>
   <div className="engineTabs"><button className={mode==='call'?'active':''} onClick={()=>setMode('call')}><Phone size={15}/> Video Call</button><button className={mode==='stream'?'active':''} onClick={()=>setMode('stream')}><Radio size={15}/> Live Stream</button><button className={mode==='pipeline'?'active':''} onClick={()=>setMode('pipeline')}><SlidersHorizontal size={15}/> Pipeline</button></div>
