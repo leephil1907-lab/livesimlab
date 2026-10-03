@@ -26,3 +26,7 @@ html{scroll-behavior:smooth}.destinationPanel{max-width:1250px;margin:14px auto;
 .editNote{margin-top:12px;color:var(--muted-foreground);font-size:9px;line-height:1.45}
 .fakeVideo video,.streamPreview video{will-change:transform,filter}
 @media(max-width:620px){.mediaControlGrid{grid-template-columns:1fr}.mediaActions{display:grid;grid-template-columns:1fr}.micPanel .primaryBtn,.micPanel .dangerBtn{width:100%}}
+
+.connectAccountBtn{grid-column:2;justify-self:end}
+.connectionMessage{grid-column:1 / -1;color:var(--warning)!important;font:9px var(--font-family-monospace)!important;line-height:1.45}
+@media(max-width:900px){.connectAccountBtn{grid-column:1;justify-self:stretch}}
