@@ -19,6 +19,17 @@ function VoiceOrb({level,speaking}:{level:number;speaking:boolean}) {
 }
 
 type EventRow = [string, string, string, string];
+type PlatformId = 'whatsapp' | 'googlemeet' | 'zoom' | 'telegram' | 'tiktok' | 'custom';
+type Platform = { id: PlatformId; name: string; mode: string; description: string; availability: string; requires: string };
+
+const platforms: Platform[] = [
+  { id:'whatsapp', name:'WhatsApp', mode:'Link / supported integration', description:'Use an approved WhatsApp workflow or meeting link. Direct calling depends on the WhatsApp API/product access available to your account.', availability:'Platform-dependent', requires:'Business/API access or an existing call link' },
+  { id:'googlemeet', name:'Google Meet', mode:'Meeting link', description:'Launch or attach a Google Meet session and use LiveSim Lab as the media/control workspace around it.', availability:'Available with a Meet link', requires:'Google Meet account and meeting URL' },
+  { id:'zoom', name:'Zoom', mode:'Meeting / SDK integration', description:'Connect a Zoom meeting or supported SDK integration for controlled sessions.', availability:'Requires Zoom integration credentials', requires:'Zoom account and approved SDK/API credentials' },
+  { id:'telegram', name:'Telegram', mode:'Link / bot workflow', description:'Open a Telegram destination or supported bot workflow. Telegram Bot API does not provide arbitrary user-to-user voice calling.', availability:'Limited for calling', requires:'Telegram destination or bot workflow' },
+  { id:'tiktok', name:'TikTok LIVE', mode:'LIVE / creator tools', description:'Prepare a TikTok LIVE destination where your account is eligible. Streaming access and LIVE APIs are subject to TikTok approval and account eligibility.', availability:'Eligibility / approval required', requires:'Eligible TikTok LIVE account and supported streaming access' },
+  { id:'custom', name:'Custom RTMP / WebRTC', mode:'Direct stream', description:'Connect a compatible destination using its supported stream or WebRTC details.', availability:'Depends on destination', requires:'Endpoint, stream key or WebRTC configuration' }
+];
 
 export default function Home() {
   const [playing, setPlaying] = useState(true);
@@ -44,6 +55,11 @@ export default function Home() {
   const [mediaName, setMediaName] = useState('');
   const [transactionRef, setTransactionRef] = useState('');
   const [transactionAmount, setTransactionAmount] = useState('');
+  const [destination, setDestination] = useState<PlatformId | ''>('');
+  const [destinationOpen, setDestinationOpen] = useState<PlatformId | ''>('');
+  const [destinationValue, setDestinationValue] = useState('');
+  const [destinationConnected, setDestinationConnected] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [orbLevel, setOrbLevel] = useState(0.08);
@@ -96,10 +112,25 @@ export default function Home() {
   };
 
   const startStream = () => {
+    if (!destination) {
+      addEvent('STREAM', 'Choose a destination before starting the session', 'warning');
+      setDestinationOpen('custom');
+      return;
+    }
+    if (!destinationValue.trim()) {
+      addEvent('STREAM', 'Add the destination meeting URL, endpoint or connection reference first', 'warning');
+      setDestinationOpen(destination);
+      return;
+    }
+    if (!mediaUrl && !voiceOutputUrl) {
+      addEvent('STREAM', 'Load media or generate voice output before starting', 'warning');
+      return;
+    }
     const next = !streaming;
     setStreaming(next);
     setViewers(0);
-    addEvent('STREAM', next ? 'Simulation session started' : 'Simulation session stopped', next ? 'success' : 'info');
+    setSessionReady(next);
+    addEvent('STREAM', next ? `Session started for ${platforms.find(p=>p.id===destination)?.name || 'destination'}` : 'Session stopped', next ? 'success' : 'info');
   };
 
   const loadMedia = (file: File | undefined) => {
@@ -180,10 +211,27 @@ export default function Home() {
       </section>
 
       <nav className="labNav" aria-label="Simulation labs">
+        <button className={lab==='simulation'?'active':''} onClick={()=>setLab('simulation')}>Workspace</button>
+        <button className={lab==='voice'?'active':''} onClick={()=>setLab('voice')}>Voice</button>
+        <button className={lab==='media'?'active':''} onClick={()=>setLab('media')}>Media</button>
+        <button className={lab==='forensics'?'active':''} onClick={()=>setLab('forensics')}>Forensics</button>
+        <button className={destinationOpen?'active':''} onClick={()=>setDestinationOpen(destination || 'custom')}>Destinations</button>
         {([['simulation','Simulation'],['voice','Voice Lab'],['media','Media Lab'],['forensics','Forensics']] as [Lab,string][]).map(([id,label]) =>
           <button key={id} className={lab===id?'active':''} onClick={()=>setLab(id)}>{label}</button>
         )}
       </nav>
+
+      {destinationOpen && <section className="destinationPanel panel">
+        <div className="panelHead"><div><p className="eyebrow">CONNECTION HUB</p><h2>Choose where this session goes</h2></div><button className="ghost" onClick={()=>setDestinationOpen('')}>Close</button></div>
+        <div className="platformGrid">
+          {platforms.map(p=><button key={p.id} className={'platformCard '+(destination===p.id?'selected':'')} onClick={()=>{setDestination(p.id);setDestinationOpen(p.id);setDestinationConnected(false);}}>
+            <strong>{p.name}</strong><span>{p.mode}</span><small>{p.availability}</small>
+          </button>)}
+        </div>
+        {destinationOpen && <div className="connectionDetail">
+          {(() => { const p=platforms.find(x=>x.id===destinationOpen); if(!p) return null; return <><div><p className="eyebrow">DESTINATION SETUP</p><h3>{p.name}</h3><p>{p.description}</p></div><label>Meeting URL / stream endpoint / connection reference<input value={destinationValue} onChange={e=>setDestinationValue(e.target.value)} placeholder={p.id==='zoom'?'Paste your Zoom meeting URL or integration reference':p.id==='googlemeet'?'Paste your Google Meet URL':'Paste the destination URL or supported endpoint'} /></label><small>Requires: {p.requires}</small><button className="primaryBtn" onClick={()=>{if(!destinationValue.trim()){addEvent('CONNECT',`Add a ${p.name} destination first`,'warning');return;}setDestination(p.id);setDestinationConnected(true);addEvent('CONNECT',`${p.name} destination configured by user`,'success')}}>{destinationConnected && destination===p.id?'CONNECTED':'CONFIGURE DESTINATION'}</button></>})()}
+        </div>}
+      </section>}
 
       <section className="workspace">
         <div className="panel media">
@@ -196,13 +244,13 @@ export default function Home() {
             <div className="streamStage">
               <div className="stageGrid"/>
               <div className="streamPreview">
-                <span className="liveBadge">{streaming ? '● SIMULATED SESSION' : 'READY FOR MEDIA'}</span>
+                <span className="liveBadge">{streaming ? '● SESSION ACTIVE' : destinationConnected ? 'DESTINATION READY' : 'CONNECT A DESTINATION'}</span>
                 {mediaUrl ? <video src={mediaUrl} controls playsInline /> : <button className="outline" onClick={() => mediaInputRef.current?.click()}>Load video</button>}
                 <b>{mediaName || 'No media loaded'}</b>
                 <small>Local media only · simulation label remains visible</small>
                 <div className="streamWatermark">LIVE SIM LAB</div>
               </div>
-              <div className="streamStats"><span>{streaming ? '0 simulated viewers' : 'No audience connected'}</span><span>{streaming ? 'SESSION ACTIVE' : 'SESSION IDLE'}</span></div>
+              <div className="streamStats"><span>{streaming ? 'Session connected · audience remains external' : 'No audience connected'}</span><span>{streaming ? 'SESSION ACTIVE' : 'SESSION IDLE'}</span></div>
               {streamVoiceArmed && voiceOutputUrl && <div className="streamAudio"><span>VOICE OUTPUT ARMED · SIMULATION</span><audio controls src={voiceOutputUrl}/></div>}
             </div>
           ) : (
@@ -221,7 +269,7 @@ export default function Home() {
             <button className="play" onClick={()=>setPlaying(!playing)}>{playing?'Ⅱ':'▶'}</button>
             <div className="scrub"><span style={{width: progress + '%'}}/></div>
             <span className="mono">{playing ? 'PLAYING' : 'PAUSED'}</span>
-            {tab === 'stream' && <button className={streaming ? 'dangerBtn' : 'streamBtn'} onClick={startStream}>{streaming ? 'STOP SIM' : 'START SIM'}</button>}
+            {tab === 'stream' && <button className={streaming ? 'dangerBtn' : 'streamBtn'} onClick={startStream}>{streaming ? 'END SESSION' : 'START SESSION'}</button>}
             <button onClick={()=>addEvent('MEDIA', playing?'Playback paused':'Playback resumed')}>MARK EVENT</button>
           </div>
         </div>
