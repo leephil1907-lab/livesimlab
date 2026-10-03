@@ -13,48 +13,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Bootstrap lockfile when absent
-        shell: bash
+      - name: Generate lockfile when missing
+        if: hashFiles('package-lock.json') == ''
+        run: npm install --package-lock-only
+
+      - name: Commit generated lockfile
+        if: hashFiles('package-lock.json') != ''
         run: |
-          if [ ! -f package-lock.json ]; then
-            npm install --package-lock-only --ignore-scripts
+          if git diff --quiet -- package-lock.json; then
+            echo "package-lock.json already committed."
+          else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add package-lock.json
-            git commit -m "chore: add npm lockfile [skip ci]"
+            git commit -m "chore: add npm lockfile"
             git push
           fi
 
-      - name: Install from lockfile
+      - name: Install reproducibly
         run: npm ci
 
       - name: Build
         run: npm run build
 
-      - name: Smoke test production bundle
-        shell: bash
-        run: |
-          test -f dist/index.html
-          npm run preview -- --host 127.0.0.1 > /tmp/livesim-vite.log 2>&1 &
-          SERVER_PID=$!
-          trap 'kill $SERVER_PID' EXIT
-          for i in {1..30}; do
-            if curl --fail --silent --show-error http://127.0.0.1:4173/ > /tmp/livesim-index.html; then
-              grep -q "<title>" /tmp/livesim-index.html
-              exit 0
-            fi
-            sleep 1
-          done
-          cat /tmp/livesim-vite.log
-          exit 1
+      - name: Production smoke test
+        run: npm run smoke
