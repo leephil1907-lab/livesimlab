@@ -210,15 +210,12 @@ export default function Home() {
         </div>
       </section>
 
-      <nav className="labNav" aria-label="Simulation labs">
-        <button className={lab==='simulation'?'active':''} onClick={()=>setLab('simulation')}>Workspace</button>
-        <button className={lab==='voice'?'active':''} onClick={()=>setLab('voice')}>Voice</button>
-        <button className={lab==='media'?'active':''} onClick={()=>setLab('media')}>Media</button>
-        <button className={lab==='forensics'?'active':''} onClick={()=>setLab('forensics')}>Forensics</button>
-        <button className={destinationOpen?'active':''} onClick={()=>setDestinationOpen(destination || 'custom')}>Destinations</button>
-        {([['simulation','Simulation'],['voice','Voice Lab'],['media','Media Lab'],['forensics','Forensics']] as [Lab,string][]).map(([id,label]) =>
-          <button key={id} className={lab===id?'active':''} onClick={()=>setLab(id)}>{label}</button>
-        )}
+      <nav className="labNav" aria-label="LiveSim workflow">
+        <button className={lab==='simulation'?'active':''} onClick={()=>{setLab('simulation');document.getElementById('workspace')?.scrollIntoView({behavior:'smooth',block:'start'})}}>1 · Session</button>
+        <button className={lab==='media'?'active':''} onClick={()=>{setLab('media');document.getElementById('mediaLab')?.scrollIntoView({behavior:'smooth',block:'start'})}}>2 · Media</button>
+        <button className={lab==='voice'?'active':''} onClick={()=>{setLab('voice');document.getElementById('voiceLab')?.scrollIntoView({behavior:'smooth',block:'start'})}}>3 · Voice</button>
+        <button className={destinationOpen?'active':''} onClick={()=>setDestinationOpen(destination || 'custom')}>4 · Destination</button>
+        <button className={lab==='forensics'?'active':''} onClick={()=>{setLab('forensics');document.getElementById('eventLog')?.scrollIntoView({behavior:'smooth',block:'start'})}}>5 · Review</button>
       </nav>
 
       {destinationOpen && <section className="destinationPanel panel">
@@ -233,7 +230,7 @@ export default function Home() {
         </div>}
       </section>}
 
-      <section className="workspace">
+      <section id="workspace" className="workspace">
         <div className="panel media">
           <div className="panelHead">
             <div className="tabs"><button className={tab==='call'?'active':''} onClick={()=>setTab('call')}>Video call</button><button className={tab==='stream'?'active':''} onClick={()=>setTab('stream')}>Livestream</button></div>
@@ -282,7 +279,7 @@ export default function Home() {
         </aside>
       </section>
 
-      <section className="toolsGrid">
+      <section id="mediaLab" className="toolsGrid">
         <div className="panel toolPanel">
           <div className="panelHead"><div><p className="eyebrow">VOICE LAB</p><h2>Voice simulation</h2></div><span className="tag">AUTHORIZED / SYNTHETIC</span></div>
           <div className="toolBody">
@@ -328,7 +325,7 @@ export default function Home() {
           <div className="tx"><div className="coin">₿</div><div><b>{transactionRef || 'No transaction supplied'}</b><small>LiveSim Lab accepts user-provided synthetic transaction data only.</small></div><strong>{transactionAmount ? transactionAmount + ' BTC' : '—'}</strong></div>
           <button className="outline" disabled={!transactionRef.trim()} onClick={()=>addEvent('BTC','User-provided transaction reference recorded for analysis','warning')}>Record for analysis</button>
         </div>
-        <div className="panel logs">
+        <div id="eventLog" className="panel logs">
           <div className="panelHead"><div><p className="eyebrow">EVENT LOG</p><h2>Timeline</h2></div><button className="ghost" onClick={()=>setEventsShown([])}>Clear</button></div>
           <div className="eventList">{eventsShown.length ? eventsShown.map((e,i)=><div className="event" key={i}><time>{e[0]}</time><span className={'eventDot ' + e[3]}/><div><b>{e[1]}</b><span>{e[2]}</span></div></div>) : <div className="empty">No events. Use the console controls to create audit markers.</div>}</div>
         </div>
