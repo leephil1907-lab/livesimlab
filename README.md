@@ -5,17 +5,19 @@ LiveSim Lab is a transparent media-research studio for **authorized synthetic/av
 ## Current media path
 
 ```text
-Camera
+Phone / Camera
   ↓
-MediaPipe tracking (browser)
+DroidCam
+  ↓
+OBS — DroidCam Source
+  ↓
+LiveSim capture + browser tracking
   ↓
 RTX / Deep-Live-Cam renderer (optional local GPU worker)
   ↓
 Rendered canvas / MediaStream
   ↓
 Local desktop bridge
-  ↓
-OBS Browser Source
   ↓
 OBS scene + browser-source audio
   ↓
@@ -24,9 +26,29 @@ OBS Virtual Camera
 Zoom / Meet / other webcam applications
 ```
 
+The official DroidCam OBS Source is the supported camera bridge for Android/iOS into OBS. It supports high-resolution capture, low-latency Wi-Fi/USB transport, multiple devices, and hardware acceleration. urlDroidCam OBS Pluginhttps://github.com/dev47apps/droidcam-obs-plugin
+
+See the complete setup and troubleshooting runbook in [`docs/DROIDCAM-OBS-LIVESIM-SETUP.md`](docs/DROIDCAM-OBS-LIVESIM-SETUP.md).
+
 OBS's Virtual Camera exposes the selected OBS scene as a webcam to applications that accept webcam input. urlOBS Virtual Camera Guidehttps://obsproject.com/kb/virtual-camera-guide
 
 The local bridge is `bridge/server.py`. It is deliberately bound to `127.0.0.1` by default and accepts JPEG video frames and generated WAV audio over local WebSockets. OBS loads `http://127.0.0.1:8788/obs` as a Browser Source. OBS Browser Source can render custom web content and audio/video tasks. urlOBS Browser Source Guidehttps://obsproject.com/kb/browser-source
+
+## Desktop preflight
+
+The control plane includes a browser-safe DroidCam/OBS preflight helper at `src/lib/droidcamPreflight.js`. It checks camera enumeration and the local LiveSim bridge without assuming that a camera exists simply because the website loaded. A camera permission request is explicit.
+
+The intended order is:
+
+1. Phone connected through DroidCam.
+2. DroidCam Source visible in OBS.
+3. LiveSim receives frames.
+4. Face tracker locks to the subject.
+5. Neural/avatar renderer becomes ready.
+6. Authorized voice becomes ready.
+7. OBS Program output is correct.
+8. OBS Virtual Camera starts.
+9. User selects that virtual camera in exactly one call/stream destination.
 
 ## Neural face renderer
 
@@ -57,8 +79,6 @@ The RTX worker requires model weights that are intentionally excluded from Git. 
 
 The public F5-TTS checkpoints have a separate model-weight license and are currently non-commercial; use a properly licensed checkpoint for commercial deployment. urlF5-TTS repositoryhttps://github.com/SWivid/F5-TTS
 
-The LiveSim voice workflow is restricted to voices the user owns or is explicitly authorized to use. Generated WAV output is also forwarded to the local OBS Browser Source so OBS can mix it as a browser-source audio input; OBS supports controlling Browser Source audio through its mixer. urlOBS Browser Source Guidehttps://obsproject.com/kb/browser-source
-
 ## OBS control
 
 The **OBS Bridge** workspace connects to OBS WebSocket 5.x on localhost, authenticates with the configured password, creates the `LiveSim Output` Browser Source when needed, and can start/stop the OBS Virtual Camera.
@@ -77,46 +97,35 @@ Set:
 
 OAuth now requests the meeting scopes needed to create meetings. The server can create a real Zoom meeting and return its join/start URL.
 
-For custom raw media, Zoom's current Production Studio capability supports host/co-host clients using the Meeting SDK's `PSSender` on supported desktop platforms. That is a native SDK path, not a browser-only OAuth feature. urlZoom Production Studio documentationhttps://developers.zoom.us/docs/meeting-sdk/windows/default-ui/advanced-features/production-studio-mode/
-
-LiveSim's currently implemented desktop path is therefore:
+LiveSim's desktop path is:
 
 `LiveSim → OBS scene → OBS Virtual Camera → Zoom`.
 
 ### Google Meet
 
-OAuth can create a real Meet space and return its meeting URI. The current public Meet Media API is receive-only for conference media and does not support sending a custom outgoing media stream into a conference. urlGoogle Meet Media API referencehttps://developers.google.com/workspace/meet/media-api/reference/cpp/namespace/meet
-
-Therefore LiveSim does **not** claim that its server injects video directly into Meet. Use the OBS Virtual Camera as the webcam source in the Meet client.
+OAuth can create a real Meet space and return its meeting URI. The current public Meet Media API does not provide a browser-side path for sending LiveSim's custom outgoing media into a conference. Use the OBS Virtual Camera as the webcam source in the Meet client.
 
 ### WhatsApp
 
-WhatsApp is not treated as a fake OAuth provider. LiveSim can open the WhatsApp web client, but it does not claim an official generic API for starting a user's arbitrary personal video call or selecting a webcam. The user must start/join the call in the official client and select the OBS Virtual Camera where supported.
+WhatsApp is not treated as a fake OAuth provider. LiveSim can open the WhatsApp web client, but it does not claim an official generic API for starting a user's arbitrary personal video call or selecting a webcam. The user starts/joins the call in the official client and selects the OBS Virtual Camera where supported.
 
 ### TikTok
 
 The current adapter verifies TikTok Content Posting authorization. It does not mislabel Content Posting as a generic LIVE ingest API.
 
+## One destination at a time
+
+LiveSim intentionally does **not** broadcast a call/stream to every connected platform. A session has one active destination. Connecting an account only makes it available; the user must select the destination, pass preflight, then start that session.
+
 ## Live control endpoint
 
-`GET /api/live` is now an explicit capability/status endpoint. It reports the active session and the supported transport boundary instead of pretending that unsupported external media injection exists.
-
-There is no hidden `501 Not Implemented` live route that claims otherwise.
-
-## OAuth and token handling
-
-Google, Zoom, and TikTok use server-side OAuth code exchange. The browser receives account metadata, not provider access tokens.
-
-Google/Zoom access tokens are refreshed when an external session is started and the token is close to expiry. Tokens are sealed in an HTTP-only Secure SameSite cookie for this repository-stage implementation.
-
-For a multi-user production service, replace the cookie credential store with an authenticated server-side database/KMS-backed token store and implement revocation.
+`GET /api/live` is an explicit capability/status endpoint. It reports the active session and supported transport boundary instead of pretending unsupported external media injection exists.
 
 ## Safety boundary
 
 - Use only faces/media you own or are authorized to use.
 - Use only voices you own or have explicit permission to clone.
 - Synthetic/avatar media should remain clearly disclosed where appropriate.
-- No real wallet signing or transaction execution.
 - Provider credentials never belong in browser JavaScript or Git.
 - The local OBS WebSocket should remain localhost-only and password protected.
 
@@ -126,16 +135,11 @@ For a multi-user production service, replace the cookie credential store with an
 
 ```bash
 python -m venv .venv
-# activate the environment
 pip install -r worker/requirements.txt
 uvicorn worker.gpu_worker:app --host 127.0.0.1 --port 8787
 ```
 
-Set the Vite environment variable:
-
-```
-VITE_LIVESIM_GPU_WORKER_URL=http://127.0.0.1:8787
-```
+Set `VITE_LIVESIM_GPU_WORKER_URL=http://127.0.0.1:8787`.
 
 ### Voice worker
 
@@ -144,11 +148,7 @@ pip install -r worker/requirements.txt
 python worker/voice_worker.py
 ```
 
-Set:
-
-```
-VITE_LIVESIM_VOICE_WORKER_URL=http://127.0.0.1:8790
-```
+Set `VITE_LIVESIM_VOICE_WORKER_URL=http://127.0.0.1:8790`.
 
 ### OBS bridge
 
