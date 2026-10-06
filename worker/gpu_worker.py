@@ -12,6 +12,10 @@ sessions: Dict[str,dict]={}
 renderers: Dict[str,RealtimeRenderer]={}
 RENDERER=os.getenv("LIVE_RENDERER_BACKEND","deep-live-cam")
 GPU_PROVIDER=os.getenv("LIVE_GPU_PROVIDER","cuda")
+WORKER_TOKEN=os.getenv("LIVESIM_GPU_WORKER_TOKEN","").strip()
+
+def _authorized(token=None):
+    return not WORKER_TOKEN or token == WORKER_TOKEN
 
 @app.get("/health")
 def health():
@@ -19,7 +23,8 @@ def health():
 
 @app.get("/capabilities")
 def capabilities():
-    return {"renderer":RENDERER,"gpu_provider":GPU_PROVIDER,"modes":["avatar-driver","face-reenactment"],"input":["webcam"],"output":["webrtc","whip","recording"],"persistent":True,"neural":True}
+    loaded=any(r is not None and r.ready for r in renderers.values())
+    return {"renderer":RENDERER,"gpu_provider":GPU_PROVIDER,"modes":["avatar-driver","face-reenactment"],"input":["webcam"],"output":["jpeg-websocket"],"persistent":True,"neural":loaded,"modelLoaded":loaded}
 
 @app.post("/sessions")
 def create_session():
@@ -91,4 +96,5 @@ async def driver(ws:WebSocket,sid:str):
 
 @app.get("/")
 def root():
-    return JSONResponse({"service":"LiveSim Lab GPU Worker","status":"ready","renderer":RENDERER,"neural":True})
+    loaded=any(r is not None and r.ready for r in renderers.values())
+    return JSONResponse({"service":"LiveSim Lab GPU Worker","status":"online","renderer":RENDERER,"neuralModelLoaded":loaded,"tokenProtected":bool(WORKER_TOKEN)})
