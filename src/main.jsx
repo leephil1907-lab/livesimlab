@@ -2,6 +2,7 @@ import React,{useEffect,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {CircleHelp,LayoutDashboard,RadioTower,Settings,Volume2,Wifi} from 'lucide-react';
 import LiveSessionEngine from './LiveSessionEngine.jsx';
+import StudioWorkspace from './StudioWorkspace.jsx';
 import PlatformConsole from './PlatformConsole.jsx';
 import VoiceBridge from './VoiceBridge.jsx';
 import './live-engine.css';
@@ -57,7 +58,7 @@ function App(){
         {nav.map(([id,label,Icon])=><button key={id} className={section===id?'active':''} onClick={()=>setSection(id)}><Icon size={17}/><span>{label}</span></button>)}
       </aside>
       <main className="productMain">
-        {section==='studio'&&<LiveSessionEngine/>}
+        {section==='studio'&&<StudioWorkspace/>}
         {section==='destinations'&&<PlatformConsole onStudio={()=>setSection('studio')}/>}
         {section==='voices'&&<VoiceBridge/>}
         {section==='settings'&&<SettingsPanel/>}
