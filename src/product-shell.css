@@ -68,3 +68,8 @@
  .liveCallControls{flex-wrap:wrap}
  .liveCallControls button{flex:1}
 }
+
+.liveCallCanvas .remoteCallVideo{width:100%;height:100%;object-fit:cover;background:#020304}
+.callNegotiating{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:6px;background:rgba(5,7,9,.72);color:#dfe4e8;text-align:center}
+.callNegotiating b{font-size:12px}.callNegotiating small{font-size:9px;color:#89939e}
+.liveCallCanvas:has(.remoteCallVideo) .liveCallHud{z-index:3}
