@@ -127,6 +127,26 @@ export default function LiveSessionEngine({outputCanvasRef,initialDestination=''
     <div className="assetCard static"><span className="assetThumb pipeline"><Layers3 size={18}/></span><span><b>Processing graph</b><small>Source → tracker → renderer → output</small></span><i>LIVE</i></div>
    </div>
   </section>
+  <section className="liveCallWorkspace" aria-label="Live call session">
+   <div className="liveCallHeading"><div><span>LIVE CALL SESSION</span><b>{destination ? (destination.toUpperCase() + ' SESSION') : 'CALL PREVIEW'}</b><small>The live session and the reference identity stay visible together while you prepare or run the call.</small></div><div className="liveCallState"><i className={callState==='active'?'live':''}/><b>{callState==='active'?'LIVE CALL':'READY'}</b><span>{destination || 'No destination selected'}</span></div></div>
+   <div className="liveCallGrid">
+    <div className="liveCallOutput">
+     <div className="liveCallOutputHead"><span>CALLING SESSION</span><small>{callState==='active'?'Live transport active':'Waiting for source and destination'}</small></div>
+     <div className="liveCallCanvas">
+      {avatar?<div className="sessionAvatar"><img src={avatar.url} alt="Live avatar output"/></div>:media&&!camera&&!screen?<video src={media.url} controls playsInline style={visual}/>:<video ref={cameraRef} autoPlay muted playsInline style={visual}/>}
+      {!camera&&!screen&&!media&&!avatar&&<div className="emptyVideo"><Phone size={28}/><b>Live call ready</b><small>Start a camera, load media, or prepare an avatar to populate the session.</small></div>}
+      <div className="liveCallHud"><span>{callState==='active'?'● LIVE':'STANDBY'}</span><span>{worker==='online'?'GPU READY':'BROWSER PREVIEW'}</span></div>
+     </div>
+     <div className="liveCallControls"><button onClick={startCall} className="primary">{callState==='active'?<><Square size={14}/> End call</>:<><Phone size={14}/> Start video call</>}</button><button onClick={startCamera} className={camera?'on':''}>{camera?<CameraOff size={14}/>:<Camera size={14}/>} {camera?'Stop camera':'Camera'}</button><button onClick={startMic} className={mic?'on':''}>{mic?<MicOff size={14}/>:<Mic size={14}/>} {mic?'Mute':'Mic'}</button></div>
+    </div>
+    <aside className="liveCallReference">
+     <div className="liveCallReferenceHead"><span>IMAGE REFERENCE</span><small>IDENTITY SOURCE</small></div>
+     <div className="liveCallReferenceImage">{avatar?.url?<img src={avatar.url} alt="Selected image reference"/>:<><ImageIcon size={28}/><b>No image reference</b><small>Open Avatar Studio and upload a portrait.</small></>}</div>
+     <div className="liveCallReferenceMeta"><span>REFERENCE</span><b>{avatar?.name || 'Not selected'}</b><small>{avatar?'Loaded for this session':'Awaiting portrait'}</small></div>
+     <button onClick={()=>setShowAvatar(true)}><ImageIcon size={14}/> {avatar?'Change image reference':'Add image reference'}</button>
+    </aside>
+   </div>
+  </section>
   <div className="engineGrid">
    <aside className="sourceRail" aria-label="Studio sources">
     <div className="railSectionTitle"><span>SOURCES</span><small>INPUTS</small></div>
