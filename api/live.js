@@ -68,6 +68,9 @@ export default function handler(req,res){
       voiceTTS:Boolean(process.env.LIVESIM_VOICE_WORKER_URL),
       liveVoiceConversion:Boolean(process.env.LIVESIM_VOICE_CONVERTER_URL),
       obsBridge:true,
+      mediaGateway:Boolean(process.env.LIVESIM_MEDIA_GATEWAY_URL),
+      signaling:Boolean(process.env.LIVESIM_SIGNAL_URL),
+      whip:Boolean(process.env.LIVESIM_WHIP_URL),
       virtualCamera:true,
       nativeZoomProductionStudio:"desktop-sdk-required"
     }
