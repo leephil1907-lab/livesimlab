@@ -12,10 +12,6 @@ sessions: Dict[str,dict]={}
 renderers: Dict[str,RealtimeRenderer]={}
 RENDERER=os.getenv("LIVE_RENDERER_BACKEND","deep-live-cam")
 GPU_PROVIDER=os.getenv("LIVE_GPU_PROVIDER","cuda")
-WORKER_TOKEN=os.getenv("LIVESIM_GPU_WORKER_TOKEN","").strip()
-
-def _authorized(token=None):
-    return not WORKER_TOKEN or token == WORKER_TOKEN
 
 @app.get("/health")
 def health():
@@ -97,4 +93,4 @@ async def driver(ws:WebSocket,sid:str):
 @app.get("/")
 def root():
     loaded=any(r is not None and r.ready for r in renderers.values())
-    return JSONResponse({"service":"LiveSim Lab GPU Worker","status":"online","renderer":RENDERER,"neuralModelLoaded":loaded,"tokenProtected":bool(WORKER_TOKEN)})
+    return JSONResponse({"service":"LiveSim Lab GPU Worker","status":"online","renderer":RENDERER,"neuralModelLoaded":loaded,"tokenProtected":false})
