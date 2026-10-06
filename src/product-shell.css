@@ -18,3 +18,53 @@
 .productNav a:hover{background:#14171b;color:#e8ebef}.productNav a.active{background:#181c21;color:#fff}.productNav a.active svg{color:#d6f269}
 .pageBack{display:none;padding:14px 34px 0}.pageBack a{display:inline-flex;align-items:center;gap:5px;color:#707985;font-size:11px}.pageBack a:hover{color:#fff}
 @media(max-width:850px){.pageBack{display:block;padding:10px 14px 0}.productNav a{width:auto;min-width:max-content;margin:0}.productNav{display:flex}.productNav a span{display:block}}
+
+
+/* Live call + image reference workspace */
+.liveCallWorkspace{margin:0 0 18px;background:#0f1216;border:1px solid #252b32;border-radius:18px;padding:16px;box-shadow:0 14px 36px rgba(0,0,0,.2)}
+.liveCallHeading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:12px}
+.liveCallHeading>div:first-child span,.liveCallOutputHead span,.liveCallReferenceHead span{display:block;font-size:9px;letter-spacing:.16em;color:#7f8994}
+.liveCallHeading b{display:block;font-size:16px;margin-top:5px}
+.liveCallHeading small{display:block;color:#747e89;font-size:11px;margin-top:4px}
+.liveCallState{display:grid;grid-template-columns:auto auto;align-items:center;gap:5px 8px;text-align:right}
+.liveCallState i{width:7px;height:7px;border-radius:50%;background:#ffbd6b;display:inline-block;grid-column:1}
+.liveCallState i.live{background:#d6f269;box-shadow:0 0 12px rgba(214,242,105,.45)}
+.liveCallState b{grid-column:2;font-size:10px;letter-spacing:.1em}
+.liveCallState span{grid-column:1 / -1;color:#6f7883;font-size:9px}
+.liveCallGrid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px}
+.liveCallOutput,.liveCallReference{min-width:0;background:#090b0e;border:1px solid #20252b;border-radius:14px;overflow:hidden}
+.liveCallOutputHead{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;border-bottom:1px solid #1d2228}
+.liveCallOutputHead small{font-size:9px;color:#68727d}
+.liveCallCanvas{position:relative;aspect-ratio:16/9;min-height:300px;background:#050608;display:grid;place-items:center;overflow:hidden}
+.liveCallCanvas video,.liveCallCanvas .sessionAvatar,.liveCallCanvas .sessionAvatar img{width:100%;height:100%;object-fit:cover}
+.liveCallCanvas .sessionAvatar{display:flex;align-items:center;justify-content:center}
+.liveCallCanvas .sessionAvatar img{object-fit:contain}
+.liveCallHud{position:absolute;left:12px;right:12px;bottom:10px;display:flex;justify-content:space-between;pointer-events:none}
+.liveCallHud span{background:rgba(7,9,12,.78);border:1px solid rgba(255,255,255,.1);padding:5px 7px;border-radius:6px;color:#dfe4e8;font-size:8px;letter-spacing:.08em}
+.liveCallControls{display:flex;gap:7px;padding:10px;border-top:1px solid #1d2228}
+.liveCallControls button,.liveCallReference>button{display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid #282e35;background:#15191e;color:#bfc6cd;border-radius:8px;padding:9px 11px;font-size:10px;cursor:pointer}
+.liveCallControls button:first-child{flex:1}
+.liveCallControls button.primary{background:#d6f269;color:#10130b;border-color:#d6f269}
+.liveCallControls button.on{border-color:#58652c;color:#d6f269}
+.liveCallReference{padding:12px}
+.liveCallReferenceHead{display:flex;justify-content:space-between;align-items:center}
+.liveCallReferenceHead small{font-size:8px;letter-spacing:.12em;color:#5f6872}
+.liveCallReferenceImage{margin-top:10px;aspect-ratio:4/5;border-radius:10px;background:#11151a;border:1px solid #252b32;display:grid;place-items:center;overflow:hidden;color:#66717c;text-align:center}
+.liveCallReferenceImage img{width:100%;height:100%;object-fit:cover}
+.liveCallReferenceImage b{display:block;color:#aab2ba;font-size:11px;margin-top:6px}
+.liveCallReferenceImage small{display:block;font-size:9px;padding:0 20px;line-height:1.5}
+.liveCallReferenceMeta{padding:11px 1px 9px}
+.liveCallReferenceMeta span{font-size:8px;letter-spacing:.13em;color:#66717c}
+.liveCallReferenceMeta b{display:block;font-size:11px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.liveCallReferenceMeta small{display:block;color:#68727d;font-size:9px;margin-top:3px}
+.liveCallReference>button{width:100%}
+@media(max-width:850px){
+ .liveCallWorkspace{padding:11px;border-radius:14px}
+ .liveCallHeading{align-items:flex-start;flex-direction:column}
+ .liveCallState{text-align:left}
+ .liveCallGrid{grid-template-columns:1fr}
+ .liveCallCanvas{min-height:220px}
+ .liveCallReferenceImage{aspect-ratio:16/10}
+ .liveCallControls{flex-wrap:wrap}
+ .liveCallControls button{flex:1}
+}
