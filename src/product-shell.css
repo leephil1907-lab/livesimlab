@@ -73,3 +73,26 @@
 .callNegotiating{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:6px;background:rgba(5,7,9,.72);color:#dfe4e8;text-align:center}
 .callNegotiating b{font-size:12px}.callNegotiating small{font-size:9px;color:#89939e}
 .liveCallCanvas:has(.remoteCallVideo) .liveCallHud{z-index:3}
+
+
+/* FUA-inspired product polish: application-first, not marketing-first */
+.productApp{background:
+  radial-gradient(circle at 72% -10%,rgba(214,242,105,.045),transparent 28%),
+  #0b0d10}
+.productTopbar{box-shadow:0 1px 0 rgba(255,255,255,.015)}
+.productLayout{background:#0b0d10}
+.productNav{padding:20px 12px}
+.productNav a{transition:background .16s ease,color .16s ease,transform .16s ease}
+.productNav a.active{box-shadow:inset 2px 0 0 #d6f269}
+.productMain{background:linear-gradient(180deg,#0b0d10 0%,#0c0f12 100%)}
+.productMain>section{animation:productPageIn .22s ease-out both}
+@keyframes productPageIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.studioWorkspace{max-width:1320px!important}
+.studioIntro h1{letter-spacing:-.025em}
+.liveCallWorkspace{box-shadow:0 18px 50px rgba(0,0,0,.18)}
+@media(max-width:850px){
+ .productTopbar{height:58px}
+ .productLayout{min-height:calc(100vh - 58px)}
+ .productNav{top:58px}
+ .studioWorkspace{max-width:none!important}
+}
