@@ -232,3 +232,41 @@
 .transportBar .primary{background:var(--face-accent);color:#10140c}
 .studioWorkspace .engineTabs button.active{background:#20271b!important;color:var(--face-accent)!important}
 @media(prefers-reduced-motion:reduce){.productMain>section,.studioFlow button,.liveCallControls button{animation:none!important;transition:none!important}}
+
+/* Unified Lime + Ash system across the complete application shell and engine */
+:root{
+  --studio-bg:#090b0a;
+  --studio-panel:#121713;
+  --studio-panel-2:#171d18;
+  --studio-line:#29332c;
+  --studio-text:#edf2ec;
+  --studio-muted:#929e94;
+  --studio-cyan:#d6f269;
+  --studio-violet:#b7c0b8;
+  --studio-green:#d6f269;
+  --studio-red:#ff7777;
+  --face-accent:#d6f269;
+  --ash-950:#090b0a;
+  --ash-900:#0c100d;
+  --ash-800:#121713;
+  --ash-700:#29332c;
+  --ash-500:#7f8b81;
+  --ash-300:#b7c0b8;
+}
+.productNav a{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:11px 12px;margin-bottom:4px;border:1px solid transparent;border-radius:10px;color:#929e94;text-decoration:none;font:inherit;font-size:13px;transition:background .16s ease,color .16s ease,border-color .16s ease}
+.productNav a:hover{background:#171d18;color:#edf2ec}
+.productNav a.active{color:#edf2ec;background:linear-gradient(100deg,rgba(214,242,105,.12),rgba(214,242,105,.025));border-color:rgba(214,242,105,.12);box-shadow:inset 2px 0 0 #d6f269}
+.productNav a.active svg{color:#d6f269}
+.productNav a:focus-visible,.productHelp:focus-visible,.studioFlow button:focus-visible,.liveCallControls button:focus-visible{outline:2px solid #d6f269;outline-offset:3px}
+.productLogo{background:#d6f269;color:#10140c}
+.productMain{color:#edf2ec}
+.engineTabs button.active,.sideBlock button.selected,.stageActions button.on{color:#10140c!important;background:#d6f269!important}
+.workspacePlaceholder svg,.workerHeader span,.workerSummary svg,.workerIcon,.workerHeader button:hover{color:#d6f269}
+.workerIcon{background:#171d18}
+.workerCard.online{border-color:rgba(214,242,105,.35)}
+.online .workerDot{background:#d6f269;box-shadow:0 0 10px rgba(214,242,105,.4)}
+.online .workerState{color:#d6f269}
+.flowNode.output{color:#d6f269}
+.flowNode.live{border-color:rgba(214,242,105,.4);color:#d6f269;background:rgba(214,242,105,.045)}
+@media(prefers-reduced-motion:reduce){.productMain>section,.productNav a,.studioFlow button,.liveCallControls button{animation:none!important;transition:none!important}}
+
