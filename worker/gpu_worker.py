@@ -93,4 +93,4 @@ async def driver(ws:WebSocket,sid:str):
 @app.get("/")
 def root():
     loaded=any(r is not None and r.ready for r in renderers.values())
-    return JSONResponse({"service":"LiveSim Lab GPU Worker","status":"online","renderer":RENDERER,"neuralModelLoaded":loaded,"tokenProtected":false})
+    return JSONResponse({"service":"LiveSim Lab GPU Worker","status":"online","renderer":RENDERER,"neuralModelLoaded":loaded,"tokenProtected":False})
