@@ -96,3 +96,78 @@
  .productNav{top:58px}
  .studioWorkspace{max-width:none!important}
 }
+
+
+/* FaceLive-inspired front-of-product refinement: clear action hierarchy, live output first */
+.productApp{
+  --face-accent:#8de8ff;
+  --face-violet:#a99bff;
+  background:
+    radial-gradient(ellipse at 72% -8%,rgba(141,232,255,.075),transparent 34rem),
+    radial-gradient(ellipse at 12% 32%,rgba(169,155,255,.045),transparent 30rem),
+    #090c11;
+}
+.productTopbar{background:rgba(9,12,17,.88);backdrop-filter:blur(18px);border-color:#202936}
+.productLogo{background:linear-gradient(145deg,#a8f0ff,#8de8ff);box-shadow:0 0 24px rgba(141,232,255,.12)}
+.productBrand span{color:#91a0b3;opacity:.8}
+.productNav{background:#0b0f15;border-color:#202936}
+.productNav a{border-radius:9px}
+.productNav a.active{background:linear-gradient(100deg,rgba(141,232,255,.12),rgba(141,232,255,.025));box-shadow:inset 2px 0 0 var(--face-accent)}
+.productNav a.active svg{color:var(--face-accent)}
+.studioWorkspace{padding-top:34px}
+.studioIntro{align-items:center;margin-bottom:24px}
+.studioIntro>div:first-child span{color:var(--face-accent);font-size:9px;letter-spacing:.2em}
+.studioIntro h1{font-size:clamp(30px,3.5vw,46px);font-weight:650;letter-spacing:-.045em;margin:10px 0 9px}
+.studioIntro p{max-width:610px;color:#a1adbd;font-size:13px;line-height:1.65}
+.studioHealth{border-color:#273242;background:linear-gradient(145deg,#111925,#0c1119);box-shadow:0 12px 35px rgba(0,0,0,.15)}
+.studioHealth i.ready{background:#8de8a9}
+.studioFlow{gap:10px;margin-bottom:14px}
+.studioFlow button{border-color:#242e3b;background:linear-gradient(145deg,#111721,#0d121a);border-radius:12px;min-height:72px;transition:border-color .18s,transform .18s,background .18s}
+.studioFlow button:hover{border-color:#45566a;transform:translateY(-1px)}
+.studioFlow button.active{border-color:rgba(141,232,255,.5);background:linear-gradient(145deg,rgba(141,232,255,.1),#101721);box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.studioFlow button.active .flowIcon{background:var(--face-accent);color:#061017}
+.studioFlow b{color:#e9f0f7;font-size:12px}
+.studioFlow small{color:#91a0b3}
+.studioPreflight{border-color:#222c38;color:#8b99aa;padding:12px 4px;margin-bottom:16px}
+.studioPreflight span svg{color:#8de8a9}
+.studioPreflight span:nth-child(3) svg,.studioPreflight span:nth-child(4) svg{color:#f4bf72}
+.studioPreflight button{color:#a8b6c7;padding:7px 9px;border-radius:7px}
+.studioPreflight button:hover{background:#171f2a;color:var(--face-accent)}
+.liveCallWorkspace{border-color:#273242;background:linear-gradient(145deg,#111720,#0b1017);border-radius:16px;padding:16px}
+.liveCallHeading{margin-bottom:14px}
+.liveCallHeading>div:first-child span,.liveCallOutputHead span,.liveCallReferenceHead span{color:var(--face-accent);letter-spacing:.18em}
+.liveCallHeading b{font-size:17px;letter-spacing:-.02em}
+.liveCallHeading small{color:#8e9bad;line-height:1.55}
+.liveCallGrid{grid-template-columns:minmax(0,1fr) 300px;gap:14px}
+.liveCallOutput,.liveCallReference{background:#080c12;border-color:#263141;border-radius:12px}
+.liveCallOutputHead{border-color:#222c38}
+.liveCallCanvas{background:
+  radial-gradient(ellipse at center,rgba(141,232,255,.045),transparent 60%),
+  #05080d;min-height:280px}
+.liveCallCanvas:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(141,232,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(141,232,255,.025) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,black,transparent)}
+.liveCallControls{border-color:#222c38;background:#0b1017}
+.liveCallControls button,.liveCallReference>button{background:#141c27;border-color:#2a3747;color:#bdc9d8;transition:background .18s,border-color .18s,color .18s}
+.liveCallControls button:hover,.liveCallReference>button:hover{border-color:#4b6076;color:#f0f6ff}
+.liveCallControls button.primary{background:var(--face-accent);border-color:var(--face-accent);color:#071017;font-weight:700}
+.liveCallControls button.on{border-color:#52647b;color:var(--face-accent)}
+.liveCallReference{padding:13px}
+.liveCallReferenceImage{background:radial-gradient(circle at 50% 30%,#182333,#0c1119 68%);border-color:#263141}
+.liveCallReferenceMeta span{color:#8b9cb0}
+.liveCallReferenceMeta b{color:#e2eaf3}
+.liveCallReferenceMeta small{color:#8492a4}
+.engineStage,.engineSide,.transportBar{border-color:#263141!important}
+.engineVideo{background:#05080d!important}
+.transportBar{background:linear-gradient(100deg,#111925,#0c1118)!important}
+.transportBar .primary{background:var(--face-accent);color:#061017}
+@media(max-width:850px){
+ .studioWorkspace{padding:22px 13px 32px}
+ .studioIntro{gap:16px}
+ .studioFlow{gap:7px}
+ .studioFlow button{padding:11px;min-height:68px}
+ .liveCallGrid{grid-template-columns:1fr}
+ .liveCallCanvas{min-height:220px}
+ .liveCallReferenceImage{aspect-ratio:16/10}
+}
+@media(prefers-reduced-motion:reduce){
+ .productMain>section,.studioFlow button,.liveCallControls button{animation:none!important;transition:none!important}
+}
