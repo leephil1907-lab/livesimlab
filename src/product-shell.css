@@ -171,3 +171,64 @@
 @media(prefers-reduced-motion:reduce){
  .productMain>section,.studioFlow button,.liveCallControls button{animation:none!important;transition:none!important}
 }
+
+
+/* LiveSimLab brand palette: lime + ash. Replaces temporary cyan/violet accents. */
+.productApp{
+  --face-accent:#d6f269;
+  --face-violet:#a5ada7;
+  --ash-950:#090b0a;
+  --ash-900:#0e1210;
+  --ash-850:#121713;
+  --ash-800:#1a211c;
+  --ash-700:#29332c;
+  --ash-500:#7f8b81;
+  --ash-300:#b7c0b8;
+  background:
+    radial-gradient(ellipse at 72% -8%,rgba(214,242,105,.075),transparent 34rem),
+    radial-gradient(ellipse at 12% 32%,rgba(165,173,167,.045),transparent 30rem),
+    var(--ash-950);
+}
+.productTopbar{background:rgba(9,11,10,.9);border-color:#27302a}
+.productLogo{background:linear-gradient(145deg,#e4f99b,#d6f269);color:#10140c;box-shadow:0 0 24px rgba(214,242,105,.12)}
+.productBrand span{color:#a1aaa2}
+.productNav{background:#0b0f0c;border-color:#27302a}
+.productNav a.active{background:linear-gradient(100deg,rgba(214,242,105,.12),rgba(214,242,105,.025));box-shadow:inset 2px 0 0 var(--face-accent)}
+.productNav a.active svg{color:var(--face-accent)}
+.studioIntro>div:first-child span{color:var(--face-accent)}
+.studioIntro p{color:#a1aaa2}
+.studioHealth{border-color:#29332c;background:linear-gradient(145deg,#121713,#0c100d)}
+.studioHealth i.ready{background:#d6f269}
+.studioFlow button{border-color:#29332c;background:linear-gradient(145deg,#121713,#0d110e)}
+.studioFlow button:hover{border-color:#59634a}
+.studioFlow button.active{border-color:rgba(214,242,105,.48);background:linear-gradient(145deg,rgba(214,242,105,.1),#111610)}
+.studioFlow button.active .flowIcon{background:var(--face-accent);color:#10140c}
+.studioFlow b{color:#edf2ec}
+.studioFlow small{color:#929e94}
+.studioPreflight{border-color:#27302a;color:#929e94}
+.studioPreflight span svg{color:#d6f269}
+.studioPreflight span:nth-child(3) svg,.studioPreflight span:nth-child(4) svg{color:#b4bcae}
+.studioPreflight button{color:#b7c0b8}
+.studioPreflight button:hover{background:#171d17;color:var(--face-accent)}
+.liveCallWorkspace{border-color:#29332c;background:linear-gradient(145deg,#121713,#0b0f0c)}
+.liveCallHeading>div:first-child span,.liveCallOutputHead span,.liveCallReferenceHead span{color:var(--face-accent)}
+.liveCallHeading small{color:#929e94}
+.liveCallOutput,.liveCallReference{background:#080b09;border-color:#29332c}
+.liveCallOutputHead{border-color:#242d26}
+.liveCallCanvas{background:radial-gradient(ellipse at center,rgba(214,242,105,.045),transparent 60%),#050705}
+.liveCallCanvas:before{background-image:linear-gradient(rgba(214,242,105,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(214,242,105,.025) 1px,transparent 1px)}
+.liveCallControls{border-color:#242d26;background:#0b0f0c}
+.liveCallControls button,.liveCallReference>button{background:#171d18;border-color:#303a31;color:#c0c9c0}
+.liveCallControls button:hover,.liveCallReference>button:hover{border-color:#59664a;color:#f0f5e8}
+.liveCallControls button.primary{background:var(--face-accent);border-color:var(--face-accent);color:#10140c}
+.liveCallControls button.on{border-color:#59664a;color:var(--face-accent)}
+.liveCallReferenceImage{background:radial-gradient(circle at 50% 30%,#20291d,#0c100d 68%);border-color:#29332c}
+.liveCallReferenceMeta span{color:#929e94}
+.liveCallReferenceMeta b{color:#e4ebe3}
+.liveCallReferenceMeta small{color:#89958a}
+.engineStage,.engineSide,.transportBar{border-color:#29332c!important}
+.engineVideo{background:#050705!important}
+.transportBar{background:linear-gradient(100deg,#121713,#0c100d)!important}
+.transportBar .primary{background:var(--face-accent);color:#10140c}
+.studioWorkspace .engineTabs button.active{background:#20271b!important;color:var(--face-accent)!important}
+@media(prefers-reduced-motion:reduce){.productMain>section,.studioFlow button,.liveCallControls button{animation:none!important;transition:none!important}}
