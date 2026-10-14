@@ -8,7 +8,7 @@
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0b0d10",
-  "theme_color": "#d6f269",
+  "theme_color": "#0b0d10",
   "categories": [
     "photo",
     "video",
@@ -22,4 +22,4 @@
       "purpose": "any maskable"
     }
   ]
-}
+}\n
