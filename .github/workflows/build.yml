@@ -1,4 +1,4 @@
-name: LiveSim Lab build
+name: Reachmark FaceHub build
 
 on:
   push:
@@ -44,3 +44,6 @@ jobs:
 
       - name: Production smoke test
         run: npm run smoke
+
+      - name: Verify Railway container build
+        run: docker build -t reachmark-facehub:ci .
