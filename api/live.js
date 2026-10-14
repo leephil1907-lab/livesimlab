@@ -13,21 +13,21 @@ const platforms = {
     kind:"meeting",
     transport:"obs-virtual-camera",
     directMedia:false,
-    requirements:"Join the Meet client and select LiveSim/OBS media"
+    requirements:"Join the Meet client and select FaceHub/OBS media"
   },
   whatsapp: {
     name:"WhatsApp",
     kind:"calling",
     transport:"obs-virtual-camera",
     directMedia:false,
-    requirements:"WhatsApp Web/Desktop; select LiveSim/OBS camera and audio"
+    requirements:"WhatsApp Web/Desktop; select FaceHub/OBS camera and audio"
   },
   telegram: {
     name:"Telegram",
     kind:"calling",
     transport:"obs-virtual-camera",
     directMedia:false,
-    requirements:"Telegram Desktop/Web; select LiveSim/OBS camera and audio where exposed"
+    requirements:"Telegram Desktop/Web; select FaceHub/OBS camera and audio where exposed"
   },
   tiktok: {
     name:"TikTok",
@@ -57,7 +57,7 @@ export default function handler(req,res){
   const session=unseal(parseCookies(req).livesim_session);
   return res.status(200).json({
     ok:true,
-    service:"livesim-live-control",
+    service:"reachmark-facehub-live-control",
     sessionActive:Boolean(session),
     sessionId:session?.id||null,
     activeDestination:session?.destination||null,
