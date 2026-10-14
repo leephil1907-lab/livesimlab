@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     if (destination === "google") platform = await googleStart(connection);
     else if (destination === "zoom") platform = await zoomStart(connection, { topic: mediaName });
     else if (destination === "tiktok") platform = await tiktokCreatorInfo(connection);
-    else if (destination === "whatsapp" || destination === "telegram") platform = { provider: destination, status: "external", mediaInjection: "external_client", message: "Open the platform client and select LiveSim processed media where supported." };
+    else if (destination === "whatsapp" || destination === "telegram") platform = { provider: destination, status: "external", mediaInjection: "external_client", message: "Open the platform client and select FaceHub processed media where supported." };
   } catch (error) {
     return res.status(502).json({ error: error.message });
   }
