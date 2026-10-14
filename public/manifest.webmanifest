@@ -1,12 +1,21 @@
 {
-  "name": "LiveSim Lab — Media Simulation Console",
-  "short_name": "LiveSim Lab",
-  "description": "A transparent media simulation and research environment for studying livestreams, video calls, synthetic media, and platform workflows.",
-  "start_url": "/",
+  "id": "/",
+  "name": "Reachmark FaceHub",
+  "short_name": "FaceHub",
+  "description": "A live media studio for camera previews, authorized face transformation, and creator workflows with transparent engine status.",
+  "start_url": "/studio",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#090b0a",
-  "theme_color": "#090b0a",
+  "orientation": "any",
+  "background_color": "#10130b",
+  "theme_color": "#10130b",
+  "categories": ["photo", "video", "utilities"],
   "icons": [
-    {"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }
