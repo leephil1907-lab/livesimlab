@@ -1,6 +1,6 @@
-# LiveSim Lab
+# Reachmark FaceHub
 
-LiveSim Lab is a transparent media-research studio for **authorized synthetic/avatar media**, controlled recordings, and real platform workflows where the platform exposes a supported transport.
+Reachmark FaceHub is a live media studio for **authorized synthetic/avatar media**, controlled recordings, and real platform workflows where the platform exposes a supported transport.
 
 ## Current media path
 
@@ -42,7 +42,7 @@ The intended order is:
 
 1. Phone connected through DroidCam.
 2. DroidCam Source visible in OBS.
-3. LiveSim receives frames.
+3. Reachmark FaceHub receives frames.
 4. Face tracker locks to the subject.
 5. Neural/avatar renderer becomes ready.
 6. Authorized voice becomes ready.
@@ -97,17 +97,17 @@ Set:
 
 OAuth now requests the meeting scopes needed to create meetings. The server can create a real Zoom meeting and return its join/start URL.
 
-LiveSim's desktop path is:
+Reachmark FaceHub's desktop path is:
 
-`LiveSim → OBS scene → OBS Virtual Camera → Zoom`.
+`Reachmark FaceHub → OBS scene → OBS Virtual Camera → Zoom`.
 
 ### Google Meet
 
-OAuth can create a real Meet space and return its meeting URI. The current public Meet Media API does not provide a browser-side path for sending LiveSim's custom outgoing media into a conference. Use the OBS Virtual Camera as the webcam source in the Meet client.
+OAuth can create a real Meet space and return its meeting URI. The current public Meet Media API does not provide a browser-side path for sending Reachmark FaceHub's custom outgoing media into a conference. Use the OBS Virtual Camera as the webcam source in the Meet client.
 
 ### WhatsApp
 
-WhatsApp is not treated as a fake OAuth provider. LiveSim can open the WhatsApp web client, but it does not claim an official generic API for starting a user's arbitrary personal video call or selecting a webcam. The user starts/joins the call in the official client and selects the OBS Virtual Camera where supported.
+WhatsApp is not treated as a fake OAuth provider. Reachmark FaceHub can open the WhatsApp web client, but it does not claim an official generic API for starting a user's arbitrary personal video call or selecting a webcam. The user starts/joins the call in the official client and selects the OBS Virtual Camera where supported.
 
 ### TikTok
 
@@ -115,7 +115,7 @@ The current adapter verifies TikTok Content Posting authorization. It does not m
 
 ## One destination at a time
 
-LiveSim intentionally does **not** broadcast a call/stream to every connected platform. A session has one active destination. Connecting an account only makes it available; the user must select the destination, pass preflight, then start that session.
+Reachmark FaceHub intentionally does **not** broadcast a call/stream to every connected platform. A session has one active destination. Connecting an account only makes it available; the user must select the destination, pass preflight, then start that session.
 
 ## Live control endpoint
 
