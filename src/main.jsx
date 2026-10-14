@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {CircleHelp,LayoutDashboard,RadioTower,Settings,Volume2,Wifi,ArrowLeft} from 'lucide-react';
+import {CircleHelp,LayoutDashboard,ScanFace,Settings,Volume2,Wifi,ArrowLeft} from 'lucide-react';
 import StudioWorkspace from './StudioWorkspace.jsx';
 import PlatformConsole from './PlatformConsole.jsx';
 import VoiceBridge from './VoiceBridge.jsx';
@@ -35,7 +35,7 @@ function App(){
   const Page=path==='/studio'?<StudioWorkspace/>:path==='/destinations'?<PlatformConsole onStudio={()=>navigate('/studio')}/>:path==='/voices'?<VoiceBridge/>:<SettingsPanel/>;
   return <div className="productApp">
     <header className="productTopbar">
-      <a href="/studio" onClick={e=>navigate('/studio',e)} className="productBrand" aria-label="Reachmark FaceHub Studio"><div className="productLogo"><RadioTower size={19}/></div><div><b>Reachmark FaceHub</b><span>LIVE MEDIA STUDIO</span></div></a>
+      <a href="/studio" onClick={e=>navigate('/studio',e)} className="productBrand" aria-label="Reachmark FaceHub Studio"><div className="productLogo"><ScanFace size={19}/></div><div><b>Reachmark FaceHub</b><span>LIVE MEDIA STUDIO</span></div></a>
       <div className="productStep"><span>WORKSPACE</span><b>{active[1]}</b></div>
       <a className="productHelp" href="/settings" onClick={e=>navigate('/settings',e)} aria-label="Settings"><CircleHelp size={17}/></a>
     </header>
