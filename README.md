@@ -170,3 +170,23 @@ npm run build
 ```
 
 The production web app is the control plane. GPU inference and OS-level media devices remain on the desktop host.
+
+
+## Deployment target: persistent Node container
+
+The app now includes a Dockerfile, `server.mjs`, and `railway.json` so the browser studio and its existing `api/*.js` control-plane handlers can run in a persistent Node service instead of relying on Vercel Functions. The Node adapter preserves the common Vercel handler interface (`req.query`, `req.body`, `res.status()`, `res.json()`, and `res.redirect()`) and serves the Vite build as a single-page app.
+
+### Deploy to Railway
+
+1. Create a Railway project and deploy this repository from the `main` branch.
+2. Railway detects `railway.json` and builds the included Dockerfile.
+3. Set the required server-side environment variables in Railway Variables. At minimum, configure a random `LIVESIM_SESSION_SECRET` with at least 32 characters and `LIVESIM_PUBLIC_ORIGIN` to the final public HTTPS origin.
+4. Configure OAuth client credentials and callback URLs only for providers you actually enable. Keep all secrets server-side.
+5. Confirm `/healthz` returns `{ "ok": true }`, then test `/api/health`, sign-in callbacks, and the studio on the Railway domain before moving any custom domain.
+6. Keep the current Vercel deployment available until the Railway deployment passes those checks. Update OAuth callback URLs and DNS only during the final cutover.
+
+### Important processing boundary
+
+Moving the app off Vercel does **not** create a GPU worker. Railway runs the web app and persistent API; neural face processing still requires an independently reachable GPU worker or compatible hosted inference API. The browser tracker is a preview/tracking layer, not a replacement for neural inference. Do not set worker URLs until those services are actually deployed and reachable.
+
+The `/healthz` endpoint checks only that the Node process is serving requests. `/api/health` separately reports configuration readiness. A configured URL is not proof that a remote worker is healthy, so perform a real camera-to-output test before declaring the media pipeline ready.
