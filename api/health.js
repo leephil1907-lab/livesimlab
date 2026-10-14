@@ -35,7 +35,7 @@ export default function handler(req, res) {
   const ready = transport.sessionSecret && transport.publicOrigin;
   return res.status(ready ? 200 : 503).json({
     ok: ready,
-    service: "livesim-control-plane",
+    service: "reachmark-facehub-control-plane",
     transport,
     oauth,
     blockers,
