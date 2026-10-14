@@ -1,18 +1,22 @@
 {
   "id": "/",
-  "name": "Reachmark FaceHub",
+  "name": "Reachmark FaceHub — Live Media Studio",
   "short_name": "FaceHub",
-  "description": "A live media studio for camera previews, authorized face transformation, and creator workflows with transparent engine status.",
+  "description": "A live media studio for camera preview, face tracking, and authorized AI-powered face transformation with transparent engine status.",
   "start_url": "/studio",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#10130b",
-  "theme_color": "#10130b",
-  "categories": ["photo", "video", "utilities"],
+  "background_color": "#0b0d10",
+  "theme_color": "#d6f269",
+  "categories": [
+    "photo",
+    "video",
+    "utilities"
+  ],
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/facehub-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
