@@ -36,7 +36,7 @@ The local bridge is `bridge/server.py`. It is deliberately bound to `127.0.0.1` 
 
 ## Desktop preflight
 
-The control plane includes a browser-safe DroidCam/OBS preflight helper at `src/lib/droidcamPreflight.js`. It checks camera enumeration and the local LiveSim bridge without assuming that a camera exists simply because the website loaded. A camera permission request is explicit.
+The Reachmark FaceHub control plane includes a browser-safe DroidCam/OBS preflight helper at `src/lib/droidcamPreflight.js`. It checks camera enumeration and the local LiveSim bridge without assuming that a camera exists simply because the website loaded. A camera permission request is explicit.
 
 The intended order is:
 
@@ -64,7 +64,7 @@ The intended order is:
 
 The browser MediaPipe layer is only the motion/tracking preview. It is **not** presented as neural face synthesis.
 
-The RTX worker requires model weights that are intentionally excluded from Git. Configure the local NVIDIA machine and run the worker there; Vercel is only the control plane.
+The RTX worker requires model weights that are intentionally excluded from Git. Configure the local NVIDIA machine or a compatible GPU host and run the worker there. The web control plane and GPU inference are separate services; the deployment host does not need to provide GPU hardware.
 
 ## Authorized voice → TTS
 
@@ -128,6 +128,10 @@ Reachmark FaceHub intentionally does **not** broadcast a call/stream to every co
 - Synthetic/avatar media should remain clearly disclosed where appropriate.
 - Provider credentials never belong in browser JavaScript or Git.
 - The local OBS WebSocket should remain localhost-only and password protected.
+
+## Deployment architecture
+
+Reachmark FaceHub is designed to be host-portable. Deploy the web control plane to a persistent Node-compatible host that supports the required API routes and WebSocket proxying, and deploy GPU inference to a separate CUDA-capable host. Keep worker endpoints and session secrets in server-side environment variables. Validate health checks, WebSocket frame delivery, CORS/origin rules, and session cleanup after deployment; a successful frontend build alone does not verify neural output.
 
 ## Desktop setup
 
