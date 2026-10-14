@@ -12,5 +12,6 @@ ENV PORT=8080
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/api ./api
 COPY --from=build /app/server.mjs ./server.mjs
+COPY --from=build /app/package.json ./package.json
 EXPOSE 8080
 CMD ["node", "server.mjs"]
