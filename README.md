@@ -11,7 +11,7 @@ DroidCam
   ↓
 OBS — DroidCam Source
   ↓
-LiveSim capture + browser tracking
+FaceHub capture + browser tracking
   ↓
 RTX / Deep-Live-Cam renderer (optional local GPU worker)
   ↓
@@ -156,7 +156,7 @@ Set `VITE_LIVESIM_VOICE_WORKER_URL=http://127.0.0.1:8790`.
 python bridge/server.py
 ```
 
-Then connect the OBS Bridge workspace and use **Attach LiveSim source** followed by **Start virtual camera**.
+Then connect the OBS Bridge workspace and use **Attach FaceHub source** followed by **Start virtual camera**.
 
 ## Build
 
