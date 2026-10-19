@@ -4,6 +4,7 @@ import {CircleHelp,LayoutDashboard,ScanFace,Settings,Volume2,Wifi,ArrowLeft} fro
 import StudioWorkspace from './StudioWorkspace.jsx';
 import PlatformConsole from './PlatformConsole.jsx';
 import VoiceBridge from './VoiceBridge.jsx';
+import FaceHubHome from './FaceHubHome.jsx';
 import './live-engine.css';
 import './voice-bridge.css';
 import './platform-console.css';
@@ -25,12 +26,13 @@ function SettingsPanel(){
   return <section className="productSettings"><header><div><span>SETTINGS</span><h2>Reachmark FaceHub configuration</h2><p>Advanced transport, worker and connection diagnostics live here.</p></div><button onClick={check} disabled={busy}><Wifi size={15}/>{busy?'Checking…':'Check health'}</button></header><div className="settingsGrid"><article><span>CONTROL PLANE</span><b className={health?.ok?'ready':'warn'}>{health?.ok?'READY':'NEEDS CONFIGURATION'}</b><p>Sessions, secure cookies and API configuration.</p></article><article><span>REAL-TIME WORKERS</span><b className={health?.transport?.gpuWorker?'ready':'warn'}>{health?.transport?.gpuWorker?'CONFIGURED':'NOT CONFIGURED'}</b><p>GPU, voice, signaling, media gateway and WHIP endpoints.</p></article><article><span>DESTINATIONS</span><b>CONNECTIONS</b><p>Manage platform authorization and output configuration.</p></article><article><span>ADVANCED</span><b>LOCAL-FIRST</b><p>The GPU worker can remain on your workstation and connect securely when available.</p></article></div>{health?.blockers?.length>0&&<div className="settingsBlockers"><strong>Configuration required</strong>{health.blockers.map((x,i)=><p key={i}>• {x}</p>)}</div>}</section>;
 }
 
-function getPath(){const p=window.location.pathname.replace(/\/+$/,'')||'/studio';return routes.some(r=>r[0]===p)?p:'/studio';}
+function getPath(){const p=window.location.pathname.replace(/\/+$/,'')||'/';return p==='/'||routes.some(r=>r[0]===p)?p:'/studio';}
 
 function App(){
   const [path,setPath]=useState(getPath);
   useEffect(()=>{const onPop=()=>setPath(getPath());window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop);},[]);
   const navigate=(to,e)=>{e?.preventDefault();if(to===path)return;window.history.pushState({},'',to);setPath(to);window.scrollTo({top:0,behavior:'instant'});};
+  if(path==='/') return <FaceHubHome onOpenStudio={()=>navigate('/studio')}/>;
   const active=routes.find(r=>r[0]===path)||routes[0];
   const Page=path==='/studio'?<StudioWorkspace/>:path==='/destinations'?<PlatformConsole onStudio={()=>navigate('/studio')}/>:path==='/voices'?<VoiceBridge/>:<SettingsPanel/>;
   return <div className="productApp">
