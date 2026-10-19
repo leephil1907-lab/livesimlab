@@ -129,6 +129,24 @@ Reachmark FaceHub intentionally does **not** broadcast a call/stream to every co
 - Provider credentials never belong in browser JavaScript or Git.
 - The local OBS WebSocket should remain localhost-only and password protected.
 
+## Custom RTMP publishing boundary
+
+The browser cannot publish RTMP directly. FaceHub's custom RTMP path uses WHIP/WebRTC to reach a configured media gateway; that gateway must then forward the session to the chosen RTMP ingest target.
+
+For the current client to request a custom RTMP output:
+
+- Set `VITE_LIVESIM_WHIP_URL` to the gateway's WHIP publish endpoint.
+- Set `VITE_LIVESIM_RTMP_OUTPUT_ID` to a **non-secret output identifier**.
+- Configure the gateway out of band so it maps the request headers `X-LiveSim-Destination: rtmp` and `X-LiveSim-Output-Id: <id>` to an RTMP target.
+- Keep the RTMP URL and stream key in the gateway's server-side configuration, never in Vite/browser environment variables.
+- Confirm the gateway supports this routing contract, that its RTMP output is connected, and that the destination platform shows incoming video. A successful WHIP SDP exchange alone does not prove downstream RTMP delivery.
+
+If the output ID or WHIP URL is missing, FaceHub blocks the start action and records the missing configuration. No RTMP credentials are stored by the browser. A generic WHIP server does not automatically provide RTMP forwarding; the forwarding service and output mapping are additional required components.
+
+## Voice-processing boundary
+
+The live studio's voice-profile field is currently a profile reference, not an audio-processing chain. The separate voice worker can synthesize speech, but its output is not yet mixed into the live camera/screen stream as real-time voice conversion. For live voice transformation, configure a compatible low-latency voice-conversion worker and integrate its audio output into the published MediaStream; do not treat a profile ID or a successful video publish as proof of processed voice.
+
 ## Deployment architecture
 
 Reachmark FaceHub is designed to be host-portable. Deploy the web control plane to a persistent Node-compatible host that supports the required API routes and WebSocket proxying, and deploy GPU inference to a separate CUDA-capable host. Keep worker endpoints and session secrets in server-side environment variables. Validate health checks, WebSocket frame delivery, CORS/origin rules, and session cleanup after deployment; a successful frontend build alone does not verify neural output.
