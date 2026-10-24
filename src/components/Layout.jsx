@@ -2,13 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { ArrowRight, Menu, MessageCircle, X } from 'lucide-react';
 import { Link, useApp, useRouter } from '../lib/core.jsx';
 
-export function LogoMark({ className = 'brand-mark', dark = false }) {
+/** Brand mark: a split face (you → character) on a lime tile. Also used for favicon/app icons. */
+export function LogoMark({ className = 'brand-mark' }) {
+  const ink = '#11150a', lime = '#c6f432';
   return (
     <svg className={className} viewBox="0 0 64 64" aria-hidden="true">
-      <rect width="64" height="64" rx="16" fill={dark ? '#f5f5f2' : '#2457f5'} />
-      <path d="M20 44c1.8-7 6.4-11 12-11s10.2 4 12 11" fill="none" stroke={dark ? '#2457f5' : '#fff'} strokeWidth="3.6" strokeLinecap="round" />
-      <circle cx="32" cy="24" r="8" fill="none" stroke={dark ? '#2457f5' : '#fff'} strokeWidth="3.6" />
-      <path d="M47 11.5l1.6 4.2 4.2 1.6-4.2 1.6L47 23.1l-1.6-4.2-4.2-1.6 4.2-1.6z" fill={dark ? '#2457f5' : '#cfe0ff'} />
+      <rect width="64" height="64" rx="16" fill={lime} />
+      <circle cx="31" cy="34" r="15" fill="none" stroke={ink} strokeWidth="4" />
+      <path d="M31 19a15 15 0 0 1 0 30z" fill={ink} />
+      <circle cx="25.5" cy="31" r="2.6" fill={ink} />
+      <circle cx="36.5" cy="31" r="2.6" fill={lime} />
+      <path d="M24.5 39.2Q27.75 41.8 31 41.8" fill="none" stroke={ink} strokeWidth="3" />
+      <path d="M31 41.8Q34.25 41.8 37.5 39.2" fill="none" stroke={lime} strokeWidth="3" />
+      <circle cx="24.5" cy="39.2" r="1.5" fill={ink} />
+      <circle cx="37.5" cy="39.2" r="1.5" fill={lime} />
+      <path d="M50 9l1.9 4.6 4.6 1.9-4.6 1.9L50 22l-1.9-4.6-4.6-1.9 4.6-1.9z" fill={ink} />
     </svg>
   );
 }
@@ -20,7 +28,7 @@ export function Brand({ to = '/', dark = false, sub = true }) {
   const hasSub = sub && rest.length > 0;
   return (
     <Link to={to} className="brand" aria-label={`${name} home`}>
-      <LogoMark dark={dark} />
+      <LogoMark />
       <span className="brand-text">{hasSub ? rest.join(' ') : name}{hasSub && <small>by {first}</small>}</span>
     </Link>
   );

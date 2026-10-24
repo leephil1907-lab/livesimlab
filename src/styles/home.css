@@ -155,3 +155,34 @@
   .site-header .btn-primary { padding: 0 10px; font-size: 12.5px; }
   .site-header .btn-primary svg { display: none; }
 }
+
+/* ═════════ Lime accents ═════════ */
+.release .dot { background: var(--live); box-shadow: 0 0 0 3px rgba(124,200,15,.18); }
+.release b { background: var(--lime); border-color: transparent; color: var(--lime-ink); }
+.link-arrow { border-bottom: 2px solid var(--lime); }
+.link-arrow:hover { border-color: var(--lime-deep); }
+.hero2-facts svg, .safety-note svg { color: var(--lime-deep); }
+.hero2 h1 span { background: linear-gradient(transparent 72%, rgba(198,244,50,.55) 72%, rgba(198,244,50,.55) 90%, transparent 90%); padding-right: .04em; }
+.demo-caption svg { color: var(--lime); }
+.demo-scan { background: linear-gradient(180deg, transparent 44%, rgba(198,244,50,.3) 49.5%, rgba(240,255,200,.75) 50%, rgba(198,244,50,.22) 50.5%, transparent 56%); background-size: 100% 240%; }
+.demo-tag .live-dot { background: var(--lime); }
+.steps-row .step-top > span:first-child { padding: 2px 8px; border-radius: 6px; background: var(--lime); color: var(--lime-ink); font-weight: 600; }
+.steps-row .step-foot .dot { background: var(--live); }
+.dl-icon { background: var(--lime-ink); border-color: var(--lime-ink); }
+.cta-row { margin-top: 72px; padding: 36px 36px 34px; border: 0; border-radius: 20px; background: var(--lime-ink); color: #f3f6ea; position: relative; overflow: hidden; align-items: center; }
+.cta-row::after { content: ''; position: absolute; right: -80px; top: -120px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(closest-side, rgba(198,244,50,.32), transparent); pointer-events: none; }
+.cta-row .kicker { color: var(--lime); }
+.cta-row h2 { color: #fff; }
+.cta-row .btn { position: relative; z-index: 1; }
+@media (max-width: 600px) { .cta-row { padding: 28px 22px; } }
+
+/* pricing: equal columns; only the recommended plan gets the loud button */
+.pricing-grid > * { min-width: 0; }
+.plan-price { font-size: clamp(28px, 2.6vw, 40px); }
+.plan:not(.recommended) .btn-primary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+.plan:not(.recommended) .btn-primary:hover:not(:disabled) { background: var(--lime); border-color: var(--lime); color: var(--lime-ink); }
+.plan-tag { flex-wrap: wrap; }
+.plan-tag span { white-space: normal; }
+.plan-tag b { white-space: nowrap; }
+.app-theme .plan.recommended .plan-tag { color: #3d4a1c; }
+.app-theme .plan.recommended .plan-tag b { background: var(--lime-ink); color: var(--lime); }

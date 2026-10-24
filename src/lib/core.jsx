@@ -1,5 +1,6 @@
 // App-wide plumbing: API client, tiny router, auth + config context, toasts.
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { metaFor } from '../../server/pageMeta.js';
 
 // ───────── API ─────────
 export class ApiError extends Error {
@@ -109,6 +110,17 @@ export const dateTime = iso => {
 };
 export function useDocumentTitle(title) {
   const { config } = useApp();
-  const brand = config?.brand?.name || 'Reachmark FaceHub';
-  useEffect(() => { document.title = title ? `${title} · ${brand}` : `${brand} · Real-time AI character studio`; }, [title, brand]);
+  const brand = config?.brand || {};
+  useEffect(() => {
+    const name = brand.name || 'Reachmark FaceHub';
+    const meta = metaFor(window.location.pathname, brand);
+    const full = title ? `${title} · ${name}` : `${name} · ${brand.tagline || 'Real-time AI character studio'}`;
+    document.title = full;
+    const set = (sel, value) => { const el = document.head.querySelector(sel); if (el && value) el.setAttribute('content', value); };
+    set('meta[name="description"]', meta.description);
+    set('meta[property="og:title"]', full);
+    set('meta[name="twitter:title"]', full);
+    set('meta[property="og:description"]', meta.description);
+    set('meta[name="twitter:description"]', meta.description);
+  }, [title, brand.name, brand.tagline, brand.description]);
 }

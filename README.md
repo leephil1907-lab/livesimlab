@@ -91,6 +91,13 @@ The studio's **Motion** panel gives performers control over how the character fo
 
 The tracker's runtime (~10 MB wasm, copied to `public/vendor/` on install) and model (`public/models/face_landmarker.task`, 3.7 MB) load only when the studio opens.
 
+## Brand, colours, icons and link previews
+
+- **Name, tagline, description:** `config/site.json` → `brand` (or `APP_NAME` in `.env`). The server writes the page title, description, app name, Open Graph and Twitter tags into every page, so WhatsApp, X, Facebook and Google show the right text. Per-page titles/descriptions live in `server/pageMeta.js`.
+- **Absolute preview URLs:** set `PUBLIC_URL=https://your-domain` (otherwise the request host is used).
+- **Colours:** lime theme tokens at the top of `src/styles/base.css` (`--lime`, `--lime-ink`, `--lime-deep`); the studio's dark theme is in `src/styles/app.css`.
+- **Logo and icons:** the mark is `LogoMark` in `src/components/Layout.jsx`. After changing it (or the brand name), run `python3 scripts/make-icons.py` to regenerate `public/favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `icons/icon-192/512/maskable-512.png` and the 1200×630 `og-image.png`. The install manifest (`/manifest.webmanifest`) is generated from the brand settings.
+
 ## Configuration reference
 
 **`.env`** (see `.env.example` for every option)

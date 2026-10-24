@@ -10,6 +10,7 @@ import { paystackWebhook, walletRouter } from './wallet.js';
 import { attachLiveSocket, engineStatus, liveRouter } from './live.js';
 import { adminRouter } from './admin.js';
 import { HttpError } from './util.js';
+import { injectHead, manifest, originOf } from './head.js';
 
 const dev = process.argv.includes('--dev');
 const app = express();
@@ -26,6 +27,7 @@ app.use((_req, res, next) => {
 
 // Health checks (no auth) for Docker / Railway / uptime monitors.
 app.get('/healthz', (_req, res) => res.json({ ok: true }));
+app.get('/manifest.webmanifest', (_req, res) => { res.setHeader('Cache-Control', 'public, max-age=3600'); res.type('application/manifest+json').send(JSON.stringify(manifest(), null, 2)); });
 
 // Paystack webhook needs the raw body for signature verification.
 app.post('/api/paystack/webhook', express.raw({ type: '*/*', limit: '1mb' }), paystackWebhook);
@@ -64,7 +66,10 @@ attachLiveSocket(server);
 // ── Front-end: Vite middleware in dev, static build in production ──
 if (dev) {
   const { createServer: createVite } = await import('vite');
-  const vite = await createVite({ root: ROOT, server: { middlewareMode: true, hmr: { server } }, appType: 'spa' });
+  const vite = await createVite({
+    root: ROOT, server: { middlewareMode: true, hmr: { server } }, appType: 'spa',
+    plugins: [{ name: 'facehub-head', transformIndexHtml: (html, ctx) => injectHead(html, ctx.originalUrl || ctx.path) }],
+  });
   app.use(vite.middlewares);
 } else {
   const dist = resolve(ROOT, 'dist');
@@ -77,7 +82,7 @@ if (dev) {
     if (req.method !== 'GET' || /\.[a-z0-9]+$/i.test(req.path)) return next();
     if (!existsSync(index)) return res.status(503).send('Front-end not built yet. Run "npm run build" first.');
     res.setHeader('Cache-Control', 'no-cache');
-    res.type('html').send(readFileSync(index, 'utf8'));
+    res.type('html').send(injectHead(readFileSync(index, 'utf8'), req.path, originOf(req)));
   });
 }
 

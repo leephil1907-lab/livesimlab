@@ -52,7 +52,7 @@ function drawLabel(ctx, w, h) {
   ctx.beginPath();
   ctx.roundRect ? ctx.roundRect(x, y, bw, bh, bh / 2) : ctx.rect(x, y, bw, bh);
   ctx.fill();
-  ctx.fillStyle = '#8fa9f7';
+  ctx.fillStyle = '#c6f432';
   ctx.beginPath(); ctx.arc(x + 14 * s, y + bh / 2, 4 * s, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#f0f1ee';
   ctx.textBaseline = 'middle';
