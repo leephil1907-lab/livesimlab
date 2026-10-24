@@ -7,3 +7,4 @@ data/
 worker/models/
 worker/.venv/
 __pycache__/
+public/vendor/

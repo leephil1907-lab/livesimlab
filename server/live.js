@@ -104,6 +104,18 @@ class WorkerEngine {
   }
 }
 
+/** Validate studio motion settings before they reach the GPU worker. */
+const unit = (v, d, lo = 0, hi = 1) => (Number.isFinite(Number(v)) ? Math.min(hi, Math.max(lo, Number(v))) : d);
+export function motionSettings(msg = {}) {
+  return {
+    type: 'settings',
+    mouthMask: msg.mouthMask !== undefined ? !!msg.mouthMask : true,
+    smoothing: unit(msg.smoothing, 0.5),          // 0 = most responsive, 1 = steadiest
+    strength: unit(msg.strength, 1, 0.4, 1),      // blend of character over the real face
+    hold: msg.hold !== undefined ? !!msg.hold : true, // keep the character through brief face loss
+  };
+}
+
 // ───────────────────────── billing ─────────────────────────
 
 const fmtDuration = s => (s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`);
@@ -182,7 +194,7 @@ class LiveRun {
     if (isBinary) return this.engine.send(data);
     let msg; try { msg = JSON.parse(data.toString()); } catch { return; }
     if (msg.type === 'stop') this.end('user');
-    else if (msg.type === 'settings') this.engine.control({ type: 'settings', mouthMask: !!msg.mouthMask, sharpness: Number(msg.sharpness) || 0 });
+    else if (msg.type === 'settings') this.engine.control(motionSettings(msg));
     else if (msg.type === 'character' && msg.characterId) {
       Promise.resolve()
         .then(() => this.engine.setCharacter(loadCharacterImage(this.user.id, String(msg.characterId))))

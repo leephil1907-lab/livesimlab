@@ -1,13 +1,29 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle, Camera, CameraOff, Circle, Coins, FlipHorizontal, Info, Maximize2, Mic, MicOff,
-  PictureInPicture2, Plus, RefreshCw, Sparkles, Square, Zap,
+  PictureInPicture2, Plus, RefreshCw, ScanFace, Sparkles, Square, Zap,
 } from 'lucide-react';
 import { ApiError, Link, api, clock, credits as fmtCredits, useApp, useDocumentTitle, useToast } from '../../lib/core.jsx';
 import { Modal, Switch, UploadCharacterModal } from '../../components/AppLayout.jsx';
+import { FaceTracker, coach, drawTracking } from '../../lib/faceTracker.js';
 
 const SEND_INTERVAL_MS = 40; // ~25 fps upper bound; real rate adapts to the engine
 const MAX_IN_FLIGHT = 2;
+const DEFAULT_MOTION = { smoothing: 50, strength: 100, hold: true, tracking: true, mirrorOutput: false };
+function loadMotion() {
+  try { return { ...DEFAULT_MOTION, ...JSON.parse(localStorage.getItem('fh_motion') || '{}') }; } catch { return { ...DEFAULT_MOTION }; }
+}
+
+function Range({ label, value, onChange, min = 0, max = 100, left, right, suffix = '' }) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <label className="range-field">
+      <span className="range-head"><span>{label}</span><b className="tabular">{value}{suffix}</b></span>
+      <input type="range" className="range" min={min} max={max} step="1" value={value} style={{ '--p': `${pct}%` }} onChange={e => onChange(Number(e.target.value))} />
+      {(left || right) && <span className="range-ends"><span>{left}</span><span>{right}</span></span>}
+    </label>
+  );
+}
 
 // Timers inside a Worker keep running when the studio tab is in the background
 // (e.g. while you're in your calling app), unlike window timers.
@@ -71,6 +87,17 @@ export default function Studio() {
   const [mouthMask, setMouthMask] = useState(true);
   const [engine, setEngine] = useState(null);
 
+  // motion
+  const [motion, setMotionState] = useState(loadMotion);
+  const setMotion = patch => setMotionState(m => ({ ...m, ...patch }));
+  const motionRef = useRef(motion);
+  const overlayRef = useRef(null);
+  const liveRef = useRef(false);
+  const [trackState, setTrackState] = useState('off'); // off | loading | on | error
+  const settingsRef = useRef(null);
+  settingsRef.current = { type: 'settings', mouthMask, smoothing: motion.smoothing / 100, strength: motion.strength / 100, hold: motion.hold };
+  const [guide, setGuide] = useState(null);
+
   // live
   const [phase, setPhase] = useState('idle'); // idle | starting | live | ending
   const [statusMsg, setStatusMsg] = useState('');
@@ -99,6 +126,8 @@ export default function Studio() {
   const [, force] = useState(0);
 
   useEffect(() => { aiLabelRef.current = aiLabel; }, [aiLabel]);
+  useEffect(() => { motionRef.current = motion; localStorage.setItem('fh_motion', JSON.stringify(motion)); }, [motion]);
+  useEffect(() => { liveRef.current = phase === 'live'; }, [phase]);
   useEffect(() => { if (model) localStorage.setItem('fh_model', model.id); }, [model]);
   useEffect(() => { if (characterId) localStorage.setItem('fh_char', characterId); }, [characterId]);
 
@@ -186,7 +215,9 @@ export default function Studio() {
     let canvas = captureRef.current;
     if (!canvas) canvas = captureRef.current = document.createElement('canvas');
     if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
-    canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+    const cctx = canvas.getContext('2d');
+    if (motionRef.current.mirrorOutput) { cctx.setTransform(-1, 0, 0, 1, width, 0); cctx.drawImage(video, 0, 0, width, height); cctx.setTransform(1, 0, 0, 1, 0, 0); }
+    else cctx.drawImage(video, 0, 0, width, height);
     inFlightRef.current += 1;
     canvas.toBlob(blob => {
       if (!blob || ws.readyState !== 1) { inFlightRef.current = Math.max(0, inFlightRef.current - 1); return; }
@@ -256,7 +287,7 @@ export default function Studio() {
       if (msg.type === 'status') setStatusMsg(msg.message);
       else if (msg.type === 'ready') {
         setPhase('live'); setStatusMsg('');
-        ws.send(JSON.stringify({ type: 'settings', mouthMask }));
+        ws.send(JSON.stringify(settingsRef.current));
         stopTickerRef.current = createTicker(SEND_INTERVAL_MS, sendFrame);
       } else if (msg.type === 'tick') setTick(msg);
       else if (msg.type === 'ended') handleEnded(msg);
@@ -289,10 +320,35 @@ export default function Studio() {
     }, 4000);
   };
 
-  // Live changes during a take.
+  // Live changes during a take (sliders are debounced so dragging doesn't flood the engine).
   useEffect(() => {
-    if (phase === 'live' && wsRef.current?.readyState === 1) wsRef.current.send(JSON.stringify({ type: 'settings', mouthMask }));
-  }, [mouthMask]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (phase !== 'live') return undefined;
+    const t = setTimeout(() => { if (wsRef.current?.readyState === 1) wsRef.current.send(JSON.stringify(settingsRef.current)); }, 120);
+    return () => clearTimeout(t);
+  }, [mouthMask, motion.smoothing, motion.strength, motion.hold]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ───── face tracking (runs locally in the browser) ─────
+  useEffect(() => {
+    const clear = () => { const c = overlayRef.current; c?.getContext('2d').clearRect(0, 0, c.width, c.height); };
+    if (camState !== 'on' || !motion.tracking) { setTrackState('off'); setGuide(null); clear(); return undefined; }
+    let cancelled = false, lastUi = 0, level = 'info';
+    setTrackState('loading');
+    const tracker = new FaceTracker(videoRef.current, {
+      onMetrics: m => {
+        const now = performance.now();
+        if (now - lastUi < 250) return;
+        lastUi = now;
+        const g = coach(m); level = g.level;
+        setGuide({ ...g, m });
+      },
+      onLandmarks: pts => { if (overlayRef.current) drawTracking(overlayRef.current, videoRef.current, liveRef.current ? null : pts, level); },
+    });
+    tracker.start().then(() => { if (!cancelled) setTrackState('on'); }).catch(err => {
+      console.warn('Face tracking unavailable:', err);
+      if (!cancelled) setTrackState('error');
+    });
+    return () => { cancelled = true; tracker.stop(); clear(); };
+  }, [camState, motion.tracking]);
   const chooseCharacter = id => {
     setCharacterId(id);
     if (phase === 'live' && wsRef.current?.readyState === 1) wsRef.current.send(JSON.stringify({ type: 'character', characterId: id }));
@@ -388,6 +444,7 @@ export default function Studio() {
           <div className="stage">
             <video ref={videoRef} className={mirror ? 'mirror' : ''} muted playsInline style={{ visibility: live ? 'hidden' : 'visible' }} />
             <canvas ref={outRef} style={{ visibility: live ? 'visible' : 'hidden' }} aria-label="Live AI output" />
+            <canvas ref={overlayRef} className={`track-overlay${mirror ? ' mirror' : ''}`} style={{ visibility: live ? 'hidden' : 'visible' }} aria-hidden="true" />
 
             {camState !== 'on' && !live && (
               <div className="stage-empty">
@@ -402,7 +459,10 @@ export default function Studio() {
               </div>
             )}
 
-            {camState === 'on' && !live && !busy && <div className="stage-guide" aria-hidden="true"><i /></div>}
+            {camState === 'on' && !live && !busy && trackState !== 'on' && <div className="stage-guide" aria-hidden="true"><i /></div>}
+            {camState === 'on' && !live && !busy && trackState === 'on' && guide && (
+              <div className={`coach ${guide.level}`} role="status" aria-live="polite"><b>{guide.title}</b><span>{guide.tip}</span></div>
+            )}
 
             <div className="stage-top">
               <span>
@@ -413,6 +473,7 @@ export default function Studio() {
                 {recording && <span className="stage-pill rec"><Circle size={10} fill="currentColor" /> REC <span className="mono">{clock((Date.now() - recStart) / 1000)}</span></span>}
                 {live && <span className="stage-pill"><span className="mono">{fps} fps</span></span>}
                 {live && tick.paused && <span className="stage-pill">Paused · waiting for frames</span>}
+                {live && trackState === 'on' && guide?.level === 'warn' && <span className="stage-pill warn"><AlertTriangle size={14} /> {guide.title}</span>}
               </span>
             </div>
 
@@ -478,6 +539,31 @@ export default function Studio() {
               ))}
             </div>
             {live && <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>Tap another character to switch mid-take.</p>}
+          </section>
+
+          <section className="panel motion-panel">
+            <div className="panel-title">
+              <h2>Motion</h2>
+              {trackState === 'loading' ? <span className="badge"><span className="spinner" style={{ width: 11, height: 11 }} /> Loading tracker</span>
+                : trackState === 'error' ? <span className="badge err" title="Your browser couldn’t start the tracker. Live generation still works.">Tracker unavailable</span>
+                  : trackState === 'on' && guide ? <span className={`badge ${guide.level === 'ok' ? 'ok' : guide.level === 'warn' ? 'warn' : 'info'}`}><ScanFace size={13} /> {guide.m?.face ? `${guide.score}%` : 'No face'}</span>
+                    : <span className="badge">{camState === 'on' ? 'Tracking off' : 'Camera off'}</span>}
+            </div>
+            {trackState === 'on' && guide?.m?.face && (
+              <div className="track-stats">
+                <div><span>Distance</span><b>{guide.m.size < 0.16 ? 'Far' : guide.m.size > 0.62 ? 'Close' : 'Good'}</b></div>
+                <div><span>Light</span><b>{Math.round(guide.m.light * 100)}%</b></div>
+                <div><span>Angle</span><b>{Math.round(Math.abs(guide.m.yaw))}°</b></div>
+              </div>
+            )}
+            <Range label="Smoothing" value={motion.smoothing} onChange={v => setMotion({ smoothing: v })} left="Responsive" right="Steady" />
+            <Range label="Character strength" value={motion.strength} min={40} onChange={v => setMotion({ strength: v })} left="Subtle" right="Full" suffix="%" />
+            <div className="toggle-row"><div>Hold through quick moves<small>Keeps the character on when your face is hidden for a moment</small></div><Switch checked={motion.hold} onChange={v => setMotion({ hold: v })} label="Hold through quick moves" /></div>
+            <div className="toggle-row"><div>Face tracking overlay<small>Live tracking points and framing tips. Runs on this device only</small></div><Switch checked={motion.tracking} onChange={v => setMotion({ tracking: v })} label="Face tracking overlay" /></div>
+            <div className="toggle-row"><div>Mirror output<small>Flip what your audience sees (the preview mirror is separate)</small></div><Switch checked={motion.mirrorOutput} onChange={v => setMotion({ mirrorOutput: v })} label="Mirror output" /></div>
+            <p className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>
+              Changes apply instantly, even mid-take.{engine?.mode === 'test' ? ' The test engine passes frames through, so smoothing and strength take effect once a GPU worker is connected.' : ''}
+            </p>
           </section>
 
           <section className="panel">

@@ -8,7 +8,8 @@ browsers never talk to this worker directly.
   POST   /sessions                 → create a session            {"mouthMask": true}
   POST   /sessions/{id}/source     → upload/replace the character portrait (multipart "source")
   WS     /sessions/{id}/stream     → binary JPEG in  → binary JPEG out
-                                     text {"type":"settings","mouthMask":bool}
+                                     text {"type":"settings","mouthMask":bool,
+                                           "smoothing":0..1,"strength":0.4..1,"hold":bool}
   DELETE /sessions/{id}
   GET    /health                   → {"ok", "modelLoaded", "provider", ...}
 
@@ -44,6 +45,7 @@ DET_SIZE = int(os.getenv("DET_SIZE", "640"))               # 320 is faster, 640 
 JPEG_QUALITY = int(os.getenv("JPEG_QUALITY", "85"))
 MAX_SESSIONS = int(os.getenv("MAX_SESSIONS", "4"))
 SESSION_IDLE_SECONDS = int(os.getenv("SESSION_IDLE_SECONDS", "120"))
+HOLD_SECONDS = float(os.getenv("HOLD_SECONDS", "0.6"))       # keep the character this long when the face is briefly lost
 LOW_MEMORY = os.getenv("LOW_MEMORY", "auto").lower()       # auto = on when running on CPU only
 
 
@@ -114,17 +116,88 @@ class Engine:
             raise ValueError("No face found in this portrait. Use a clear, front-facing photo.")
         return max(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]))
 
-    def render(self, frame: np.ndarray, source, mouth_mask: bool) -> np.ndarray:
+    def render(self, frame: np.ndarray, s: "Session") -> np.ndarray:
         from insightface.app.common import Face
         with self.lock:
             bboxes, kpss = self.analyser.det_model.detect(frame, max_num=1, metric="default")
-            if bboxes is None or bboxes.shape[0] == 0 or kpss is None:
-                return frame
-            target = Face(bbox=bboxes[0, :4], kps=kpss[0], det_score=bboxes[0, 4])
-            out = self.swapper.get(frame, target, source, paste_back=True)
-        if mouth_mask:
-            out = restore_mouth(frame, out, kpss[0])
+        found = bboxes is not None and bboxes.shape[0] > 0 and kpss is not None
+        tracked = s.motion.update(kpss[0] if found else None, bboxes[0, :4] if found else None, frame.shape, s.smoothing, s.hold)
+        if tracked is None:
+            return frame
+        kps, bbox = tracked
+        target = Face(bbox=bbox, kps=kps, det_score=float(bboxes[0, 4]) if found else 0.5)
+        with self.lock:
+            out = self.swapper.get(frame, target, s.source, paste_back=True)
+        if s.strength < 0.999:
+            out = cv2.addWeighted(out, s.strength, frame, 1.0 - s.strength, 0)
+        if s.mouth_mask:
+            out = restore_mouth(frame, out, kps)
         return out
+
+
+class OneEuro:
+    """One-Euro filter (Casiez et al.): heavy smoothing when still, low lag when moving."""
+
+    def __init__(self) -> None:
+        self.x = None
+        self.dx = None
+        self.t = None
+
+    @staticmethod
+    def _alpha(cutoff: float, dt: float) -> float:
+        tau = 1.0 / (2 * math.pi * cutoff)
+        return 1.0 / (1.0 + tau / dt)
+
+    def reset(self) -> None:
+        self.x = self.dx = self.t = None
+
+    def __call__(self, x: np.ndarray, t: float, min_cutoff: float, beta: float, d_cutoff: float = 1.0) -> np.ndarray:
+        if self.x is None:
+            self.x, self.dx, self.t = x.copy(), np.zeros_like(x), t
+            return x
+        dt = max(1e-3, t - self.t)
+        self.t = t
+        dx = (x - self.x) / dt
+        a_d = self._alpha(d_cutoff, dt)
+        self.dx = a_d * dx + (1 - a_d) * self.dx
+        cutoff = min_cutoff + beta * np.abs(self.dx)
+        a = 1.0 / (1.0 + (1.0 / (2 * math.pi * cutoff)) / dt)
+        self.x = a * x + (1 - a) * self.x
+        return self.x
+
+
+class MotionTracker:
+    """Stabilises the face keypoints that drive the swap, and bridges brief detection gaps."""
+
+
+    def __init__(self) -> None:
+        self.filter = OneEuro()
+        self.last: tuple[np.ndarray, np.ndarray] | None = None
+        self.last_seen = 0.0
+
+    def update(self, kps, bbox, shape, smoothing: float, hold: bool):
+        now = time.perf_counter()
+        if kps is None:
+            if hold and self.last is not None and now - self.last_seen < HOLD_SECONDS:
+                return self.last
+            self.filter.reset()
+            self.last = None
+            return None
+        h, w = shape[:2]
+        scale = float(max(w, h))
+        # Work in frame-normalised units so behaviour is resolution independent.
+        raw = np.concatenate([kps.reshape(-1), bbox.reshape(-1)]).astype(np.float64) / scale
+        if smoothing <= 0.001:
+            out = raw
+            self.filter.reset()
+        else:
+            min_cutoff = 3.0 * (0.08 / 3.0) ** smoothing   # 3 Hz (light) → 0.08 Hz (steady)
+            beta = 12.0 * (1.0 - 0.6 * smoothing)          # react quickly to real head movement
+            out = self.filter(raw, now, min_cutoff, beta)
+        out = (out * scale).astype(np.float32)
+        result = (out[:10].reshape(5, 2), out[10:14])
+        self.last, self.last_seen = result, now
+        return result
 
 
 def restore_mouth(original: np.ndarray, swapped: np.ndarray, kps: np.ndarray) -> np.ndarray:
@@ -175,9 +248,13 @@ app = FastAPI(title="FaceHub GPU worker", docs_url=None, redoc_url=None, lifespa
 # ───────────────────────── sessions ─────────────────────────
 
 class Session:
-    def __init__(self, mouth_mask: bool) -> None:
+    def __init__(self, mouth_mask: bool, smoothing: float = 0.5, strength: float = 1.0, hold: bool = True) -> None:
         self.id = "gpu_" + uuid.uuid4().hex[:16]
         self.mouth_mask = mouth_mask
+        self.smoothing = smoothing
+        self.strength = strength
+        self.hold = hold
+        self.motion = MotionTracker()
         self.source = None
         self.frames = 0
         self.last_seen = time.time()
@@ -220,6 +297,16 @@ def encode(frame: np.ndarray) -> bytes:
 
 class CreateSession(BaseModel):
     mouthMask: bool = True
+    smoothing: float = 0.5
+    strength: float = 1.0
+    hold: bool = True
+
+
+def clamp(v, lo: float, hi: float, default: float) -> float:
+    try:
+        return min(hi, max(lo, float(v)))
+    except (TypeError, ValueError):
+        return default
 
 
 @app.get("/health")
@@ -241,7 +328,8 @@ def create_session(body: CreateSession | None = None, _: None = Depends(auth)):
         raise HTTPException(503, engine.error or "Engine is still loading")
     if len(sessions) >= MAX_SESSIONS:
         raise HTTPException(503, "The live engine is at capacity. Please try again shortly.")
-    s = Session(body.mouthMask if body else True)
+    b = body or CreateSession()
+    s = Session(b.mouthMask, clamp(b.smoothing, 0, 1, 0.5), clamp(b.strength, 0.4, 1, 1.0), b.hold)
     sessions[s.id] = s
     return {"sessionId": s.id}
 
@@ -296,6 +384,9 @@ async def stream(ws: WebSocket, sid: str):
                     data = json.loads(msg["text"])
                     if data.get("type") == "settings":
                         s.mouth_mask = bool(data.get("mouthMask", s.mouth_mask))
+                        s.smoothing = clamp(data.get("smoothing", s.smoothing), 0, 1, s.smoothing)
+                        s.strength = clamp(data.get("strength", s.strength), 0.4, 1, s.strength)
+                        s.hold = bool(data.get("hold", s.hold))
         except (WebSocketDisconnect, RuntimeError):
             pass
         finally:
@@ -314,7 +405,7 @@ async def stream(ws: WebSocket, sid: str):
                 continue
             started = time.perf_counter()
             try:
-                out = await asyncio.to_thread(engine.render, frame, s.source, s.mouth_mask)
+                out = await asyncio.to_thread(engine.render, frame, s)
                 await ws.send_bytes(encode(out))
             except Exception as exc:  # noqa: BLE001
                 log.warning("render failed: %s", exc)
@@ -326,8 +417,8 @@ async def stream(ws: WebSocket, sid: str):
     await asyncio.gather(receiver(), processor())
     try:
         await ws.close()
-    except RuntimeError:
-        pass
+    except (RuntimeError, WebSocketDisconnect):
+        pass  # client already gone
 
 
 if __name__ == "__main__":

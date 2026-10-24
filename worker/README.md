@@ -52,6 +52,7 @@ docker run --gpus all -p 8787:8787 -e WORKER_TOKEN=change-me facehub-worker
 | `JPEG_QUALITY` | `85` | Output frame quality |
 | `MAX_SESSIONS` | `4` | Concurrent live takes per worker |
 | `LOW_MEMORY` | `auto` | Lean ONNX settings (on automatically for CPU) |
+| `HOLD_SECONDS` | `0.6` | How long the character is held when the face is briefly lost (studio “Hold through quick moves”) |
 | `MODELS_DIR` | `worker/models` | Where the models live |
 
 ## Security
@@ -62,3 +63,14 @@ docker run --gpus all -p 8787:8787 -e WORKER_TOKEN=change-me facehub-worker
 ## Model licence
 
 The public `inswapper_128` weights are released for non-commercial research use. Get a commercial licence from InsightFace (or use a commercially licensed model) before charging customers.
+
+## Motion settings
+
+The studio's **Motion** panel sends these over the stream at any time (also accepted on `POST /sessions`):
+
+| Field | Range | Effect |
+| --- | --- | --- |
+| `smoothing` | 0–1 | One-Euro filter on the face keypoints that drive the swap. Higher = steadier when still; still follows real head movement quickly. |
+| `strength` | 0.4–1 | Blend of the character over the real face. |
+| `hold` | bool | Keep the last face position for `HOLD_SECONDS` when detection drops out (hand passes, quick turns) instead of flickering back to the real face. |
+| `mouthMask` | bool | Keep the performer's real mouth for natural speech. |

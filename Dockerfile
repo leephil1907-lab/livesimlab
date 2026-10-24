@@ -2,6 +2,7 @@
 FROM node:22-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
+COPY scripts/vendor-assets.mjs ./scripts/
 RUN npm ci
 COPY . .
 RUN npm run build && npm prune --omit=dev

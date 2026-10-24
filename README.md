@@ -80,6 +80,17 @@ Or: `docker build -t facehub-worker worker && docker run --gpus all -p 8787:8787
 
 The studio shows **Engine online** once `/health` reports the model is loaded. As a rough guide, an RTX 3060-class GPU handles one live take at a smooth frame rate. Raise `MAX_SESSIONS` on bigger GPUs.
 
+## Motion controls (studio)
+
+The studio's **Motion** panel gives performers control over how the character follows them:
+
+- **Face tracking overlay + framing coach.** MediaPipe Face Landmarker runs *in the browser* (nothing is uploaded) and shows live tracking points plus one clear tip at a time: move closer, add light, centre your face, face the camera. Free, works in the camera preview.
+- **Smoothing** (Responsive ↔ Steady) and **Character strength**: applied on the GPU worker, adjustable mid-take.
+- **Hold through quick moves**: keeps the character on when your face is hidden for a moment.
+- **Mirror output**: flips what your audience sees (separate from the preview mirror).
+
+The tracker's runtime (~10 MB wasm, copied to `public/vendor/` on install) and model (`public/models/face_landmarker.task`, 3.7 MB) load only when the studio opens.
+
 ## Configuration reference
 
 **`.env`** (see `.env.example` for every option)
