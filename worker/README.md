@@ -1,52 +1,64 @@
-# LiveSim GPU + voice workers
+# FaceHub GPU worker
 
-These workers run on the desktop NVIDIA machine. The Vercel app is only the browser/control plane.
+The real-time face engine. It runs on a machine with an NVIDIA GPU (your own PC, a cloud GPU such as RunPod, Vast.ai, Lambda or AWS g5, or the same server via `docker compose --profile gpu`).
 
-## Face / expression pipeline
+How it works: it uses InsightFace detection and recognition to find the character's identity, then `inswapper_128` maps that identity onto each camera frame. This is the same core Deep-Live-Cam uses. Only the newest frame is processed, so latency stays low even when the network is jittery.
 
-```text
-Camera JPEG
-  -> WebSocket /sessions/{id}/driver
-  -> Deep-Live-Cam / InsightFace model (loaded once)
-  -> target source face
-  -> frame-level face swap / expression transfer
-  -> JPEG output
-  -> browser canvas MediaStream
-  -> local OBS bridge
-```
-
-The worker does not claim neural output until the renderer model has successfully loaded. POST /sessions returns status=ready only after the face-swap model is instantiated.
-
-Required model weights are downloaded/managed by the Deep-Live-Cam dependency and are intentionally not committed to Git.
-
-## Voice / TTS pipeline
-
-```text
-Authorized reference audio + transcript
-  -> /profiles
-  -> persistent F5-TTS model
-  -> /synthesize
-  -> WAV
-```
-
-Start:
+## Install
 
 ```bash
-pip install -r worker/requirements.txt
-uvicorn worker.gpu_worker:app --host 127.0.0.1 --port 8787
-python worker/voice_worker.py
+cd worker
+python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
+pip install cython
+pip install -r requirements.txt
+python download_models.py                              # ~600 MB into worker/models
 ```
 
-The public F5-TTS checkpoints currently have a non-commercial model-weight license. For a commercial product, configure a checkpoint whose training data and model weights are properly licensed for that use.
+- **NVIDIA**: needs a recent driver, CUDA 12 and cuDNN 9 (bundled in the Docker image).
+- **Windows + AMD/Intel GPU**: `pip uninstall onnxruntime-gpu && pip install onnxruntime-directml`, then set `PROVIDER=directml`.
+- **CPU only**: `pip install onnxruntime`. It works (about 2–3 s per frame) and is handy for testing, but it is not live.
+- **Windows build error for insightface?** Install the "Desktop development with C++" workload from Visual Studio Build Tools, then retry.
 
-## GPU requirements
+## Run
 
-NVIDIA/CUDA is preferred. The RTX 4050 desktop path should be configured with a compatible NVIDIA driver and CUDA-enabled PyTorch/ONNX Runtime. The worker reports its selected provider at /health and /capabilities.
+```bash
+WORKER_TOKEN=change-me python gpu_worker.py            # http://0.0.0.0:8787
+```
+
+Then in the web app's `.env`:
+
+```
+GPU_WORKER_URL=http://<worker-host>:8787
+GPU_WORKER_TOKEN=change-me
+TEST_ENGINE=false
+```
+
+Check it with `curl -H "Authorization: Bearer change-me" http://<worker-host>:8787/health`. It should return `"modelLoaded": true`.
+
+## Docker
+
+```bash
+docker build -t facehub-worker .
+docker run --gpus all -p 8787:8787 -e WORKER_TOKEN=change-me facehub-worker
+```
+
+## Settings (environment variables)
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `WORKER_TOKEN` | *(empty)* | Shared secret. **Always set this** when the worker is reachable from the internet. |
+| `PROVIDER` | `auto` | `cuda`, `tensorrt`, `directml`, `coreml`, `cpu` |
+| `DET_SIZE` | `640` | Face detector input size. `320` is faster, `640` handles small or far faces better. |
+| `JPEG_QUALITY` | `85` | Output frame quality |
+| `MAX_SESSIONS` | `4` | Concurrent live takes per worker |
+| `LOW_MEMORY` | `auto` | Lean ONNX settings (on automatically for CPU) |
+| `MODELS_DIR` | `worker/models` | Where the models live |
 
 ## Security
 
-- Bind local workers to 127.0.0.1 unless remote access is deliberately required.
-- If a remote worker is exposed, put it behind HTTPS/WSS plus authentication.
-- Do not store provider OAuth secrets in these workers.
-- Use only authorized voice references and target faces.
-- Keep uploaded voice samples and model weights out of Git.
+- Expose the worker only to your web server: use a firewall rule, a private network or HTTPS with a token.
+- The worker keeps nothing on disk. Portraits and frames are held in memory only for the session.
+
+## Model licence
+
+The public `inswapper_128` weights are released for non-commercial research use. Get a commercial licence from InsightFace (or use a commercially licensed model) before charging customers.

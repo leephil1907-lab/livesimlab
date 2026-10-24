@@ -1,0 +1,32 @@
+# Web app only:            docker compose up -d
+# Web app + GPU worker:    docker compose --profile gpu up -d   (needs NVIDIA Container Toolkit)
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATA_DIR: /data
+    ports:
+      - "8080:8080"
+    volumes:
+      - facehub-data:/data
+
+  worker:
+    profiles: ["gpu"]
+    build: ./worker
+    restart: unless-stopped
+    environment:
+      WORKER_TOKEN: ${GPU_WORKER_TOKEN}
+      PROVIDER: cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  facehub-data:

@@ -1,0 +1,63 @@
+{
+  "brand": {
+    "name": "Reachmark FaceHub",
+    "shortName": "FaceHub",
+    "tagline": "A new face. Same you.",
+    "description": "Turn your live camera into a character. Preview your camera free, go live in your browser and buy studio credits in naira."
+  },
+  "currency": "NGN",
+  "pricePerCreditKobo": 5500,
+  "customCredits": { "min": 601, "max": 60000, "default": 1200 },
+  "packages": [
+    {
+      "id": "test",
+      "name": "Test Pack",
+      "credits": 200,
+      "priceKobo": 1100000,
+      "blurb": "200 credits to try your character on a short take. Not suitable for full calls."
+    },
+    {
+      "id": "studio",
+      "name": "Studio",
+      "credits": 600,
+      "priceKobo": 3300000,
+      "blurb": "Room to rehearse, experiment and create."
+    },
+    {
+      "id": "studio-plus",
+      "name": "Studio Plus",
+      "credits": 1000,
+      "priceKobo": 5500000,
+      "blurb": "1,000 credits for live character transformations, across as many takes as you need."
+    },
+    {
+      "id": "studio-hour",
+      "name": "Studio Hour",
+      "credits": 3600,
+      "priceKobo": 19800000,
+      "blurb": "3,600 credits for one hour of live generation, across as many takes as you need.",
+      "recommended": true
+    }
+  ],
+  "models": [
+    {
+      "id": "signature",
+      "name": "Signature",
+      "creditsPerSecond": 1,
+      "description": "Highest fidelity. Full-resolution frames with mouth preservation.",
+      "profile": { "width": 960, "quality": 0.82, "mouthMask": true }
+    },
+    {
+      "id": "nova",
+      "name": "Nova",
+      "creditsPerSecond": 0.5,
+      "description": "Faster and lighter. Great for longer takes.",
+      "profile": { "width": 640, "quality": 0.74, "mouthMask": false }
+    }
+  ],
+  "sampleCharacters": [
+    { "id": "sample-amara", "name": "Amara", "image": "/characters/amara.webp" },
+    { "id": "sample-kofi", "name": "Kofi", "image": "/characters/kofi.webp" },
+    { "id": "sample-nova", "name": "Nova", "image": "/characters/nova.webp" }
+  ]
+}

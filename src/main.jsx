@@ -1,55 +1,82 @@
-import React,{useEffect,useState} from 'react';
-import {createRoot} from 'react-dom/client';
-import {CircleHelp,LayoutDashboard,ScanFace,Settings,Volume2,Wifi,ArrowLeft} from 'lucide-react';
-import StudioWorkspace from './StudioWorkspace.jsx';
-import PlatformConsole from './PlatformConsole.jsx';
-import VoiceBridge from './VoiceBridge.jsx';
-import FaceHubHome from './FaceHubHome.jsx';
-import './live-engine.css';
-import './voice-bridge.css';
-import './platform-console.css';
-import './styles.css';
-import './studio-shell.css';
-import './product-shell.css';
+import React, { useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import './styles/base.css';
+import './styles/public.css';
+import './styles/app.css';
+import { AppProvider, RouterProvider, ToastProvider, useApp, useRouter } from './lib/core.jsx';
+import { PublicLayout } from './components/Layout.jsx';
+import { AppLayout } from './components/AppLayout.jsx';
+import Home from './pages/Home.jsx';
+import Pricing from './pages/Pricing.jsx';
+import { AcceptableUse, Download, HowItWorks, NotFound, Privacy, Terms } from './pages/Info.jsx';
+import { Login, Register } from './pages/Auth.jsx';
+import Studio from './pages/app/Studio.jsx';
+import { Account, Admin, Billing, BillingCallback, Characters } from './pages/app/Pages.jsx';
 
-const routes=[
-  ['/studio','Studio',LayoutDashboard],
-  ['/destinations','Destinations',Wifi],
-  ['/voices','Voices',Volume2],
-  ['/settings','Settings',Settings]
-];
-
-function SettingsPanel(){
-  const [health,setHealth]=useState(null),[busy,setBusy]=useState(false);
-  const check=async()=>{setBusy(true);try{const r=await fetch('/api/health',{cache:'no-store'});setHealth(await r.json());}catch(e){setHealth({ok:false,blockers:[e.message||'Control-plane health check failed.']});}finally{setBusy(false);}};
-  useEffect(()=>{check();},[]);
-  return <section className="productSettings"><header><div><span>SETTINGS</span><h2>Reachmark FaceHub configuration</h2><p>Advanced transport, worker and connection diagnostics live here.</p></div><button onClick={check} disabled={busy}><Wifi size={15}/>{busy?'Checking…':'Check health'}</button></header><div className="settingsGrid"><article><span>CONTROL PLANE</span><b className={health?.ok?'ready':'warn'}>{health?.ok?'READY':'NEEDS CONFIGURATION'}</b><p>Sessions, secure cookies and API configuration.</p></article><article><span>REAL-TIME WORKERS</span><b className={health?.transport?.gpuWorker?'ready':'warn'}>{health?.transport?.gpuWorker?'CONFIGURED':'NOT CONFIGURED'}</b><p>GPU, voice, signaling, media gateway and WHIP endpoints.</p></article><article><span>DESTINATIONS</span><b>CONNECTIONS</b><p>Manage platform authorization and output configuration.</p></article><article><span>ADVANCED</span><b>LOCAL-FIRST</b><p>The GPU worker can remain on your workstation and connect securely when available.</p></article></div>{health?.blockers?.length>0&&<div className="settingsBlockers"><strong>Configuration required</strong>{health.blockers.map((x,i)=><p key={i}>• {x}</p>)}</div>}</section>;
-}
-
-function getPath(){const p=window.location.pathname.replace(/\/+$/,'')||'/';return p==='/'||routes.some(r=>r[0]===p)?p:'/studio';}
-
-function App(){
-  const [path,setPath]=useState(getPath);
-  useEffect(()=>{const onPop=()=>setPath(getPath());window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop);},[]);
-  const navigate=(to,e)=>{e?.preventDefault();if(to===path)return;window.history.pushState({},'',to);setPath(to);window.scrollTo({top:0,behavior:'instant'});};
-  if(path==='/') return <FaceHubHome onOpenStudio={()=>navigate('/studio')}/>;
-  const active=routes.find(r=>r[0]===path)||routes[0];
-  const Page=path==='/studio'?<StudioWorkspace/>:path==='/destinations'?<PlatformConsole onStudio={()=>navigate('/studio')}/>:path==='/voices'?<VoiceBridge/>:<SettingsPanel/>;
-  return <div className="productApp">
-    <header className="productTopbar">
-      <a href="/studio" onClick={e=>navigate('/studio',e)} className="productBrand" aria-label="Reachmark FaceHub Studio"><div className="productLogo"><ScanFace size={19}/></div><div><b>Reachmark FaceHub</b><span>LIVE MEDIA STUDIO</span></div></a>
-      <div className="productStep"><span>WORKSPACE</span><b>{active[1]}</b></div>
-      <a className="productHelp" href="/settings" onClick={e=>navigate('/settings',e)} aria-label="Settings"><CircleHelp size={17}/></a>
-    </header>
-    <div className="productLayout">
-      <aside className="productNav" aria-label="Main navigation">
-        {routes.map(([href,label,Icon])=><a key={href} href={href} className={path===href?'active':''} onClick={e=>navigate(href,e)}><Icon size={17}/><span>{label}</span></a>)}
-      </aside>
-      <main className="productMain">
-        <div className="pageBack"><a href={path==='/studio'?'/studio':'/studio'} onClick={e=>navigate('/studio',e)}><ArrowLeft size={14}/> Studio</a></div>
-        {Page}
-      </main>
+/** Chromeless window that mirrors the studio's live output — share it in calls or capture it in OBS. */
+function OutputWindow() {
+  const ref = useRef(null);
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    document.title = 'Live output';
+    document.body.style.background = '#000';
+    const onMsg = e => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === 'idle') return setActive(false);
+      if (e.data?.type !== 'frame') return;
+      const { bitmap } = e.data;
+      const c = ref.current;
+      if (c.width !== bitmap.width || c.height !== bitmap.height) { c.width = bitmap.width; c.height = bitmap.height; }
+      c.getContext('2d').drawImage(bitmap, 0, 0);
+      bitmap.close?.();
+      setActive(true);
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+  return (
+    <div className="output-page">
+      <canvas ref={ref} width="1280" height="720" />
+      {!active && <div className="output-wait"><div>Live output<br /><small>Go live in the studio — your AI video appears here.<br />Share this window in your call, or capture it in OBS.</small></div></div>}
     </div>
-  </div>;
+  );
 }
-createRoot(document.getElementById('root')).render(<App/>);
+
+function RequireAuth({ children }) {
+  const { user } = useApp();
+  const { navigate, path, search } = useRouter();
+  useEffect(() => {
+    if (user === null) navigate(`/login?next=${encodeURIComponent(path + search)}`, { replace: true });
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!user) return <div className="app-theme"><div className="page-loading"><span className="spinner" /></div></div>;
+  return children;
+}
+
+const PUBLIC = { '/': Home, '/pricing': Pricing, '/download': Download, '/how-it-works': HowItWorks, '/terms': Terms, '/privacy': Privacy, '/acceptable-use': AcceptableUse };
+const PRIVATE = { '/studio': Studio, '/characters': Characters, '/billing': Billing, '/billing/callback': BillingCallback, '/account': Account, '/admin': Admin };
+
+function Routes() {
+  const { path } = useRouter();
+  const clean = path.replace(/\/+$/, '') || '/';
+  if (clean === '/output') return <OutputWindow />;
+  if (clean === '/login') return <Login />;
+  if (clean === '/register') return <Register />;
+  if (PRIVATE[clean]) {
+    const Page = PRIVATE[clean];
+    return <RequireAuth><AppLayout><Page /></AppLayout></RequireAuth>;
+  }
+  const Page = PUBLIC[clean] || NotFound;
+  return <PublicLayout><Page /></PublicLayout>;
+}
+
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <RouterProvider>
+      <AppProvider>
+        <ToastProvider>
+          <Routes />
+        </ToastProvider>
+      </AppProvider>
+    </RouterProvider>
+  </React.StrictMode>,
+);

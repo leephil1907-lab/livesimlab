@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data/
+.env
+*.log
+.DS_Store
+worker/models/
+worker/.venv/
+__pycache__/

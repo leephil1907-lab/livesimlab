@@ -1,4 +1,4 @@
-name: Reachmark FaceHub build
+name: Build & test
 
 on:
   push:
@@ -6,44 +6,24 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
-  build:
+  web:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Generate lockfile when missing
-        if: hashFiles('package-lock.json') == ''
-        run: npm install --package-lock-only
-
-      - name: Commit generated lockfile
-        if: hashFiles('package-lock.json') != ''
-        run: |
-          if git status --porcelain -- package-lock.json | grep -q .; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "chore: add npm lockfile"
-            git push
-          else
-            echo "package-lock.json already committed and clean."
-          fi
-
-      - name: Install reproducibly
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Production smoke test
-        run: npm run smoke
-
-      - name: Verify Railway container build
-        run: docker build -t reachmark-facehub:ci .
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run smoke
+      - run: docker build -t facehub-web:ci .
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m py_compile worker/gpu_worker.py worker/download_models.py

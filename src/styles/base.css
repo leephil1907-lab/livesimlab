@@ -1,0 +1,124 @@
+@import '@fontsource/instrument-sans/400.css';
+@import '@fontsource/instrument-sans/500.css';
+@import '@fontsource/instrument-sans/600.css';
+@import '@fontsource/instrument-sans/700.css';
+
+:root {
+  --font: 'Instrument Sans', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* light (public) */
+  --paper: #f5f5f2;
+  --surface: #ffffff;
+  --raised: #eeeeea;
+  --ink: #1d1f22;
+  --ink-2: #303337;
+  --muted: #65686b;
+  --line: #ddded9;
+  --line-strong: #bbbeb8;
+  --accent: #3d6df2;
+  --accent-soft: #e6ecfd;
+  --live: #22b36b;
+  --danger: #d64545;
+  --warn: #c98a12;
+
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --shadow: 0 1px 2px rgba(20, 22, 25, .05), 0 12px 32px -12px rgba(20, 22, 25, .14);
+  --shadow-lg: 0 2px 4px rgba(20, 22, 25, .04), 0 32px 72px -24px rgba(20, 22, 25, .28);
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img, video, canvas, svg { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4 { margin: 0; letter-spacing: -0.035em; line-height: 1.04; font-weight: 600; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+::selection { background: #c9d6fb; }
+
+.shell { width: min(1200px, 100% - 48px); margin-inline: auto; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 10px; }
+.skip-link:focus { top: 12px; }
+.tabular { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+
+/* ───────── Buttons ───────── */
+.btn {
+  --h: 44px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: var(--h); padding: 0 20px; border-radius: 999px;
+  border: 1px solid transparent; background: transparent;
+  font-weight: 600; font-size: 15px; letter-spacing: -0.01em; white-space: nowrap;
+  cursor: pointer; transition: background .2s var(--ease), color .2s, border-color .2s, transform .2s var(--ease), opacity .2s;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn svg { width: 17px; height: 17px; flex: none; }
+.btn-primary { background: var(--ink); color: var(--paper); }
+.btn-primary:hover:not(:disabled) { background: #000; }
+.btn-light { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.btn-light:hover:not(:disabled) { border-color: var(--line-strong); }
+.btn-ghost { color: var(--ink); }
+.btn-ghost:hover:not(:disabled) { background: var(--raised); }
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-accent:hover:not(:disabled) { background: #2f5be0; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover:not(:disabled) { background: #bf3636; }
+.btn-lg { --h: 52px; padding: 0 26px; font-size: 16px; }
+.btn-sm { --h: 36px; padding: 0 14px; font-size: 14px; }
+.btn-block { width: 100%; }
+.text-link { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; border-bottom: 1px solid transparent; transition: border-color .2s; }
+.text-link:hover { border-color: currentColor; }
+.text-link svg { width: 16px; height: 16px; transition: transform .2s var(--ease); }
+.text-link:hover svg { transform: translateX(3px); }
+
+.live-dot { position: relative; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--live); flex: none; }
+.live-dot::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--live); opacity: 0; animation: ping 2s var(--ease) infinite; }
+@keyframes ping { 0% { transform: scale(.6); opacity: .7; } 100% { transform: scale(1.5); opacity: 0; } }
+
+.kicker { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+/* ───────── Forms ───────── */
+.field { display: grid; gap: 7px; }
+.field > span { font-size: 14px; font-weight: 600; }
+.field small { color: var(--muted); font-size: 13px; }
+.input {
+  width: 100%; height: 48px; padding: 0 14px;
+  border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface);
+  transition: border-color .2s, box-shadow .2s;
+}
+.input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(29, 31, 34, .08); }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--muted); line-height: 1.45; cursor: pointer; }
+.check input { margin-top: 2px; width: 17px; height: 17px; accent-color: var(--ink); flex: none; }
+.check a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+.form-error { padding: 11px 14px; border-radius: 12px; background: #fdecec; color: #9e2b2b; font-size: 14px; border: 1px solid #f5cfcf; }
+
+/* ───────── Toasts ───────── */
+.toasts { position: fixed; z-index: 200; left: 50%; bottom: 24px; transform: translateX(-50%); display: grid; gap: 8px; width: min(440px, calc(100% - 32px)); pointer-events: none; }
+.toast { pointer-events: auto; padding: 13px 16px; border-radius: 14px; background: #1d1f22; color: #f5f5f2; font-size: 14px; box-shadow: var(--shadow-lg); animation: toast-in .3s var(--ease); }
+.toast-success { background: #13623c; }
+.toast-error { background: #9e2b2b; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } }
+
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.page-loading { min-height: 60vh; display: grid; place-items: center; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
