@@ -2,13 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/base.css';
 import './styles/public.css';
+import './styles/home.css';
 import './styles/app.css';
 import { AppProvider, RouterProvider, ToastProvider, useApp, useRouter } from './lib/core.jsx';
 import { PublicLayout } from './components/Layout.jsx';
 import { AppLayout } from './components/AppLayout.jsx';
 import Home from './pages/Home.jsx';
 import Pricing from './pages/Pricing.jsx';
-import { AcceptableUse, Download, HowItWorks, NotFound, Privacy, Terms } from './pages/Info.jsx';
+import { AcceptableUse, Download, HowItWorks, NotFound, Privacy, Safety, Terms } from './pages/Info.jsx';
 import { Login, Register } from './pages/Auth.jsx';
 import Studio from './pages/app/Studio.jsx';
 import { Account, Admin, Billing, BillingCallback, Characters } from './pages/app/Pages.jsx';
@@ -52,7 +53,7 @@ function RequireAuth({ children }) {
   return children;
 }
 
-const PUBLIC = { '/': Home, '/pricing': Pricing, '/download': Download, '/how-it-works': HowItWorks, '/terms': Terms, '/privacy': Privacy, '/acceptable-use': AcceptableUse };
+const PUBLIC = { '/': Home, '/pricing': Pricing, '/download': Download, '/how-it-works': HowItWorks, '/terms': Terms, '/privacy': Privacy, '/acceptable-use': AcceptableUse, '/safety': Safety };
 const PRIVATE = { '/studio': Studio, '/characters': Characters, '/billing': Billing, '/billing/callback': BillingCallback, '/account': Account, '/admin': Admin };
 
 function Routes() {

@@ -22,6 +22,9 @@
 .app-theme .input:focus { border-color: #8fa9f7; box-shadow: 0 0 0 4px rgba(61,109,242,.18); }
 .app-theme .check input { accent-color: var(--accent); }
 .app-theme .form-error { background: rgba(214,69,69,.12); border-color: rgba(214,69,69,.35); color: #ffb4b4; }
+.app-theme .plan.recommended { background: #f0f1ee; color: #141517; border-color: #f0f1ee; }
+.app-theme .plan.recommended .muted, .app-theme .plan.recommended .plan-blurb { color: #5d6064; }
+.app-theme .plan.recommended .btn-primary { background: #141517; color: #f0f1ee; }
 .app-theme .custom-form { background: #17181a; }
 .app-theme ::selection { background: #3d4f86; }
 

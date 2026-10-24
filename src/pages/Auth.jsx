@@ -1,25 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, Check, Eye, EyeOff, Wallet } from 'lucide-react';
 import { Link, api, credits as fmtCredits, naira, useApp, useDocumentTitle, useRouter } from '../lib/core.jsx';
 import { Brand } from '../components/Layout.jsx';
 
 function AuthShell({ children }) {
-  const canvasRef = useRef(null);
-  useEffect(() => {
-    let scene, disposed = false;
-    if (window.matchMedia('(max-width: 900px)').matches) return undefined; // side panel hidden on mobile
-    import('../three/scenes.js').then(({ GradientScene, webglAvailable }) => {
-      if (disposed || !webglAvailable()) return;
-      try { scene = new GradientScene(canvasRef.current, { intensity: 1 }); } catch { /* CSS gradient fallback */ }
-    });
-    return () => { disposed = true; scene?.dispose(); };
-  }, []);
   return (
     <div className="auth-page">
       <aside className="auth-side">
-        <div className="auth-canvas" ref={canvasRef} aria-hidden="true" />
-        <div className="auth-cards" aria-hidden="true">
-          {['amara', 'kofi', 'nova'].map(n => <img key={n} src={`/characters/${n}.webp`} alt="" />)}
+        <div className="auth-side-art" aria-hidden="true">
+          {['amara', 'kofi', 'nova'].map(n => <div key={n} style={{ backgroundImage: `url(/characters/${n}.webp)` }} />)}
         </div>
         <Brand dark />
         <blockquote>A new face.<br /><span>Same you.</span></blockquote>

@@ -177,6 +177,33 @@ export function AcceptableUse() {
   );
 }
 
+export function Safety() {
+  const { config } = useApp();
+  const links = config?.links || {};
+  const report = links.email ? `mailto:${links.email}?subject=${encodeURIComponent('Abuse report')}` : links.whatsapp ? `https://wa.me/${links.whatsapp}` : null;
+  return (
+    <Legal title="Safety rules">
+      <p><strong>Made for creativity. Not deception.</strong> Characters are for skits, livestreams, content creation, consensual pranks and calls where people know the video is AI.</p>
+      <h2>The rules</h2>
+      <ul>
+        <li>Use your own face, our sample characters, or portraits you have permission to use.</li>
+        <li>Tell people your video is AI-transformed, and follow each platform’s rules on AI content.</li>
+        <li>Keep the “AI video” label on wherever viewers could mistake the character for real footage.</li>
+        <li>No scams, identity theft, extortion or deceptive impersonation of real people.</li>
+        <li>Never use the studio to pass face, ID or liveness verification for a bank, exchange, employer or any other service.</li>
+        <li>No sexual content of real people, and nothing involving minors.</li>
+      </ul>
+      <h2>What we do</h2>
+      <p>Live output carries a visible AI label by default. We review reports quickly, suspend accounts that break these rules and cooperate with law enforcement where required. See the full <Link to="/acceptable-use">acceptable use policy</Link>.</p>
+      <h2>Report abuse</h2>
+      <p>Seen a character used to deceive or impersonate someone? Tell us what happened, where and when, with links or screenshots if you have them.</p>
+      {report
+        ? <p style={{ marginTop: 18 }}><a className="btn btn-primary" href={report}>Report abuse <ArrowRight /></a></p>
+        : <div className="callout">Abuse reports: set <code>SUPPORT_EMAIL</code> or <code>SUPPORT_WHATSAPP</code> in your <code>.env</code> to show a contact here.</div>}
+    </Legal>
+  );
+}
+
 export function NotFound() {
   useDocumentTitle('Page not found');
   return (

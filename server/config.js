@@ -87,6 +87,7 @@ export const config = {
 
   links: {
     windowsApp: env('WINDOWS_APP_URL'),
+    demoVideo: env('DEMO_VIDEO_URL'),
     whatsapp: env('SUPPORT_WHATSAPP').replace(/[^\d]/g, ''),
     email: env('SUPPORT_EMAIL'),
     telegram: env('SUPPORT_TELEGRAM'),

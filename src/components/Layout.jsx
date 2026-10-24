@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, Menu, MessageCircle, X } from 'lucide-react';
 import { Link, useApp, useRouter } from '../lib/core.jsx';
-import { useSmoothScroll } from '../lib/motion.jsx';
 
 export function LogoMark({ className = 'brand-mark', dark = false }) {
   return (
     <svg className={className} viewBox="0 0 64 64" aria-hidden="true">
-      <rect width="64" height="64" rx="16" fill={dark ? '#f5f5f2' : '#1d1f22'} />
-      <path d="M20 44c1.8-7 6.4-11 12-11s10.2 4 12 11" fill="none" stroke={dark ? '#1d1f22' : '#f5f5f2'} strokeWidth="3.6" strokeLinecap="round" />
-      <circle cx="32" cy="24" r="8" fill="none" stroke={dark ? '#1d1f22' : '#f5f5f2'} strokeWidth="3.6" />
-      <path d="M47 11.5l1.6 4.2 4.2 1.6-4.2 1.6L47 23.1l-1.6-4.2-4.2-1.6 4.2-1.6z" fill="#4c7dff" />
+      <rect width="64" height="64" rx="16" fill={dark ? '#f5f5f2' : '#2457f5'} />
+      <path d="M20 44c1.8-7 6.4-11 12-11s10.2 4 12 11" fill="none" stroke={dark ? '#2457f5' : '#fff'} strokeWidth="3.6" strokeLinecap="round" />
+      <circle cx="32" cy="24" r="8" fill="none" stroke={dark ? '#2457f5' : '#fff'} strokeWidth="3.6" />
+      <path d="M47 11.5l1.6 4.2 4.2 1.6-4.2 1.6L47 23.1l-1.6-4.2-4.2-1.6 4.2-1.6z" fill={dark ? '#2457f5' : '#cfe0ff'} />
     </svg>
   );
 }
@@ -28,7 +27,7 @@ export function Brand({ to = '/', dark = false, sub = true }) {
 }
 
 const NAV = [
-  ['/#experience', 'The experience'],
+  ['/#live-demo', 'The experience'],
   ['/download', 'Download'],
   ['/how-it-works', 'How it works'],
   ['/pricing', 'Pricing'],
@@ -40,7 +39,7 @@ function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -57,11 +56,11 @@ function Header() {
         </div>
         <div className="header-actions">
           {user ? (
-            <Link to="/studio" className="btn btn-glow">Open studio <ArrowRight /></Link>
+            <Link to="/studio" className="btn btn-primary">Open studio <ArrowRight /></Link>
           ) : (
             <>
               <Link to="/login" className="nav-link">Sign in</Link>
-              <Link to="/register" className="btn btn-glow">Get started <ArrowRight /></Link>
+              <Link to="/register" className="btn btn-primary">Get started <ArrowRight /></Link>
             </>
           )}
           <button type="button" className="menu-btn" aria-expanded={open} aria-controls="mobile-menu" aria-label={open ? 'Close navigation' : 'Open navigation'} onClick={() => setOpen(o => !o)}>
@@ -83,44 +82,19 @@ function Footer({ onCookies }) {
   const links = config?.links || {};
   return (
     <footer className="site-footer">
-      <div className="shell">
-        <div className="footer-grid">
-          <div>
-            <Brand />
-            <p>Real-time AI character transformation for comedy, creative livestreams and calls where everyone knows it’s AI. Pay in naira.</p>
-          </div>
-          <div>
-            <h4>Product</h4>
-            <nav>
-              <Link to="/how-it-works">How it works</Link>
-              <Link to="/pricing">Pricing</Link>
-              <Link to="/download">Download</Link>
-              <Link to="/register">Browser studio</Link>
-            </nav>
-          </div>
-          <div>
-            <h4>Support</h4>
-            <nav>
-              {links.whatsapp && <Link to={`https://wa.me/${links.whatsapp}`}>WhatsApp</Link>}
-              {links.telegram && <Link to={links.telegram}>Telegram</Link>}
-              {links.email && <Link to={`mailto:${links.email}`}>{links.email}</Link>}
-              <Link to="/how-it-works#faq">Help &amp; FAQ</Link>
-            </nav>
-          </div>
-          <div>
-            <h4>Legal</h4>
-            <nav>
-              <Link to="/terms">Terms of use</Link>
-              <Link to="/privacy">Privacy</Link>
-              <Link to="/acceptable-use">Acceptable use</Link>
-            </nav>
-          </div>
+      <div className="shell footer-row">
+        <div className="footer-left">
+          <span>© {new Date().getFullYear()} {name}</span>
+          <span>Made for your next character.</span>
         </div>
-        <div className="footer-wordmark" aria-hidden="true">{name.split(' ').slice(-1)[0]}</div>
-        <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} {name}. All rights reserved.</span>
-          <span>Use portraits you have permission to use. Always disclose AI video. <button type="button" onClick={onCookies}>Cookie preferences</button></span>
-        </div>
+        <nav aria-label="Footer">
+          <Link to="/terms">Terms</Link>
+          <Link to="/privacy">Privacy</Link>
+          <button type="button" onClick={onCookies}>Cookie preferences</button>
+          <Link to="/safety">Safety</Link>
+          {links.email && <Link to={`mailto:${links.email}`}>{links.email}</Link>}
+          {!links.email && links.whatsapp && <Link to={`https://wa.me/${links.whatsapp}`}>WhatsApp</Link>}
+        </nav>
       </div>
     </footer>
   );
@@ -169,15 +143,14 @@ function CookieBanner({ forceOpen, onClose }) {
 
 export function PublicLayout({ children }) {
   const [cookieOpen, setCookieOpen] = useState(false);
-  useSmoothScroll();
   return (
-    <div className="public-root">
+    <>
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <Header />
       <main id="main-content" tabIndex={-1}>{children}</main>
       <Footer onCookies={() => setCookieOpen(true)} />
       <SupportFab />
       <CookieBanner forceOpen={cookieOpen} onClose={() => setCookieOpen(false)} />
-    </div>
+    </>
   );
 }

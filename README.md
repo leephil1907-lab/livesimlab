@@ -98,6 +98,7 @@ The tracker's runtime (~10 MB wasm, copied to `public/vendor/` on install) and m
 - `SESSION_SECRET`: auto-generated and stored in `data/` if left blank.
 - `SIGNUP_BONUS_CREDITS`: free credits for new accounts (default 0).
 - `WINDOWS_APP_URL`: if you ship a Windows build, its link replaces "coming soon".
+- `DEMO_VIDEO_URL`: your own recorded before/after demo for the home page. Without it, the page shows a clearly labelled illustration.
 - `DATA_DIR`: where the SQLite database and uploaded portraits are stored (default `./data`).
 
 **`config/site.json`**
