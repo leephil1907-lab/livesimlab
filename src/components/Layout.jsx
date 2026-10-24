@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, Menu, MessageCircle, X } from 'lucide-react';
 import { Link, useApp, useRouter } from '../lib/core.jsx';
+import { useSmoothScroll } from '../lib/motion.jsx';
 
 export function LogoMark({ className = 'brand-mark', dark = false }) {
   return (
@@ -27,7 +28,7 @@ export function Brand({ to = '/', dark = false, sub = true }) {
 }
 
 const NAV = [
-  ['/#live-demo', 'The experience'],
+  ['/#experience', 'The experience'],
   ['/download', 'Download'],
   ['/how-it-works', 'How it works'],
   ['/pricing', 'Pricing'],
@@ -39,7 +40,7 @@ function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => setScrolled(window.scrollY > 40);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -56,11 +57,11 @@ function Header() {
         </div>
         <div className="header-actions">
           {user ? (
-            <Link to="/studio" className="btn btn-primary">Open studio <ArrowRight /></Link>
+            <Link to="/studio" className="btn btn-glow">Open studio <ArrowRight /></Link>
           ) : (
             <>
               <Link to="/login" className="nav-link">Sign in</Link>
-              <Link to="/register" className="btn btn-primary">Get started <ArrowRight /></Link>
+              <Link to="/register" className="btn btn-glow">Get started <ArrowRight /></Link>
             </>
           )}
           <button type="button" className="menu-btn" aria-expanded={open} aria-controls="mobile-menu" aria-label={open ? 'Close navigation' : 'Open navigation'} onClick={() => setOpen(o => !o)}>
@@ -115,6 +116,7 @@ function Footer({ onCookies }) {
             </nav>
           </div>
         </div>
+        <div className="footer-wordmark" aria-hidden="true">{name.split(' ').slice(-1)[0]}</div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} {name}. All rights reserved.</span>
           <span>Use portraits you have permission to use. Always disclose AI video. <button type="button" onClick={onCookies}>Cookie preferences</button></span>
@@ -167,14 +169,15 @@ function CookieBanner({ forceOpen, onClose }) {
 
 export function PublicLayout({ children }) {
   const [cookieOpen, setCookieOpen] = useState(false);
+  useSmoothScroll();
   return (
-    <>
+    <div className="public-root">
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <Header />
       <main id="main-content" tabIndex={-1}>{children}</main>
       <Footer onCookies={() => setCookieOpen(true)} />
       <SupportFab />
       <CookieBanner forceOpen={cookieOpen} onClose={() => setCookieOpen(false)} />
-    </>
+    </div>
   );
 }

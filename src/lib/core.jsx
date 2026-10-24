@@ -32,7 +32,14 @@ export function RouterProvider({ children }) {
     if (url.pathname + url.search + url.hash === window.location.pathname + window.location.search + window.location.hash) return;
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search + url.hash);
     setLoc({ path: url.pathname, search: url.search, hash: url.hash });
-    if (url.hash) requestAnimationFrame(() => document.getElementById(url.hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }));
+    const lenis = window.__lenis;
+    if (url.hash) {
+      setTimeout(() => {
+        const el = document.getElementById(url.hash.slice(1));
+        if (!el) return;
+        if (lenis) lenis.scrollTo(el, { offset: -90, duration: 1.4 }); else el.scrollIntoView({ behavior: 'smooth' });
+      }, 60);
+    } else if (lenis) lenis.scrollTo(0, { immediate: true, force: true });
     else window.scrollTo({ top: 0 });
   }, []);
   const value = useMemo(() => ({ ...loc, query: new URLSearchParams(loc.search), navigate }), [loc, navigate]);
