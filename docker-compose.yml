@@ -15,7 +15,9 @@ services:
 
   worker:
     profiles: ["gpu"]
-    build: ./worker
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
     restart: unless-stopped
     environment:
       WORKER_TOKEN: ${GPU_WORKER_TOKEN}
