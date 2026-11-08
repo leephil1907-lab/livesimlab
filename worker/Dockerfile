@@ -11,6 +11,8 @@ COPY worker/gpu_worker.py worker/download_models.py worker/deep_live_cam_adapter
 COPY vendor/Deep-Live-Cam/modules /app/vendor/Deep-Live-Cam/modules
 COPY vendor/Deep-Live-Cam/LICENSE /app/vendor/Deep-Live-Cam/LICENSE
 ENV PYTHONPATH=/app/vendor/Deep-Live-Cam
+# Fail the image build if the vendored headless processor cannot be imported.
+RUN python3 -c "from deep_live_cam_adapter import DeepLiveCamPasteBack; print('Deep-Live-Cam adapter import OK')"
 # Bake models into the image so cold starts are fast.
 RUN python3 download_models.py
 ENV PROVIDER=cuda PORT=8787
