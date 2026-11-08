@@ -6,6 +6,7 @@ services:
     name: reachmark-facehub
     runtime: docker
     plan: standard
+    region: frankfurt
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /healthz
