@@ -273,7 +273,7 @@ sessions: dict[str, Session] = {}
 
 def check_token(token: str | None) -> None:
     if not WORKER_TOKEN:
-        return
+        raise HTTPException(503, "WORKER_TOKEN is not configured on this worker")
     supplied = (token or "").removeprefix("Bearer ").strip()
     if not hmac.compare_digest(supplied, WORKER_TOKEN):
         raise HTTPException(401, "Invalid worker token")
