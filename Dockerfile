@@ -1,6 +1,9 @@
 # Web app (site + studio + API). The GPU worker has its own image in worker/Dockerfile.
 FROM node:22-slim AS build
 WORKDIR /app
+# better-sqlite3 falls back to node-gyp when a prebuilt binary is unavailable.
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json .npmrc ./
 COPY scripts/vendor-assets.mjs ./scripts/
 RUN npm ci
