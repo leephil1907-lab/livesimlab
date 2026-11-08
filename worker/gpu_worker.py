@@ -1,8 +1,7 @@
 """
 Reachmark FaceHub — GPU live engine.
 
-Real-time face transformation worker (InsightFace detection + inswapper, the
-same core used by Deep-Live-Cam). The web app connects to it server-to-server;
+Real-time face transformation worker using Deep-Live-Cam's optimized affine-aware paste-back pipeline. The web app connects to it server-to-server;
 browsers never talk to this worker directly.
 
   POST   /sessions                 → create a session            {"mouthMask": true}
@@ -24,6 +23,7 @@ import logging
 import math
 import os
 import threading
+import sys
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -38,6 +38,9 @@ log = logging.getLogger("facehub.worker")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 HERE = Path(__file__).resolve().parent
+DLC_ROOT = HERE.parent / "vendor" / "Deep-Live-Cam"
+if str(DLC_ROOT) not in sys.path:
+    sys.path.insert(0, str(DLC_ROOT))
 MODELS_DIR = Path(os.getenv("MODELS_DIR", HERE / "models"))
 WORKER_TOKEN = os.getenv("WORKER_TOKEN", "")
 PROVIDER = os.getenv("PROVIDER", "auto").lower()          # auto | cuda | tensorrt | directml | coreml | cpu
@@ -76,7 +79,8 @@ class Engine:
         self.providers: list[str] = []
         self.analyser = None
         self.swapper = None
-        self.lock = threading.Lock()  # ONNX sessions are thread-safe, but keep GPU work serialized per process
+        self.lock = threading.Lock()  # serialize model and paste-back work per process
+        self.dlc_pasteback = None
 
     def load(self) -> None:
         try:
@@ -84,6 +88,8 @@ class Engine:
             from insightface.app import FaceAnalysis
 
             self.providers = pick_providers()
+            from deep_live_cam_adapter import DeepLiveCamPasteBack
+            self.dlc_pasteback = DeepLiveCamPasteBack(self.providers, DET_SIZE)
             log.info("Loading models with providers %s", self.providers)
             swapper_path = next((MODELS_DIR / n for n in ("inswapper_128_fp16.onnx", "inswapper_128.onnx") if (MODELS_DIR / n).exists()), None)
             if swapper_path is None:
@@ -127,7 +133,8 @@ class Engine:
         kps, bbox = tracked
         target = Face(bbox=bbox, kps=kps, det_score=float(bboxes[0, 4]) if found else 0.5)
         with self.lock:
-            out = self.swapper.get(frame, target, s.source, paste_back=True)
+            aligned_face, affine = self.swapper.get(frame, target, s.source, paste_back=False)
+            out = self.dlc_pasteback.apply(frame.copy(), aligned_face, affine, target)
         if s.strength < 0.999:
             out = cv2.addWeighted(out, s.strength, frame, 1.0 - s.strength, 0)
         if s.mouth_mask:
