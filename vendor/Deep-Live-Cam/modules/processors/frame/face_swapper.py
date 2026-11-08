@@ -10,7 +10,9 @@ import modules.globals
 import modules.processors.frame.core
 from insightface.utils import face_align
 from modules import imread_unicode, imwrite_unicode
-from modules.core import update_status
+def update_status(message: str, scope: str = "DLC.FACE-SWAPPER") -> None:
+    """Headless status logger; the desktop UI is intentionally not imported by FaceHub."""
+    logging.info("[%s] %s", scope, message)
 from modules.face_analyser import get_one_face, get_many_faces, default_source_face
 from modules.typing import Face, Frame
 from modules.utilities import (
