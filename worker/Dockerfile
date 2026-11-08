@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip python3-dev build-essential libgl1 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY requirements.txt .
+COPY worker/requirements.txt ./requirements.txt
 RUN pip3 install --upgrade pip && pip3 install cython && pip3 install -r requirements.txt
 COPY worker/gpu_worker.py worker/download_models.py worker/deep_live_cam_adapter.py ./
 # Import only the headless Deep-Live-Cam processing modules (not its desktop UI).
