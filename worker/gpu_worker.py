@@ -38,7 +38,8 @@ log = logging.getLogger("facehub.worker")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 HERE = Path(__file__).resolve().parent
-DLC_ROOT = HERE.parent / "vendor" / "Deep-Live-Cam"
+DLC_CANDIDATES = (HERE.parent / "vendor" / "Deep-Live-Cam", HERE / "vendor" / "Deep-Live-Cam")
+DLC_ROOT = next((candidate for candidate in DLC_CANDIDATES if candidate.is_dir()), DLC_CANDIDATES[0])
 if str(DLC_ROOT) not in sys.path:
     sys.path.insert(0, str(DLC_ROOT))
 MODELS_DIR = Path(os.getenv("MODELS_DIR", HERE / "models"))
