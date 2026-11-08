@@ -8,7 +8,7 @@ import numpy as np
 
 
 class DeepLiveCamPasteBack:
-    """Apply Deep-Live-Cam's affine-aware optimized paste-back to a FaceHub frame."""
+    """Run Deep-Live-Cam's optimized single-face swap and affine paste-back."""
 
     def __init__(self, providers: list[str], detector_size: int) -> None:
         import modules.globals as dlc_globals
@@ -19,13 +19,11 @@ class DeepLiveCamPasteBack:
         dlc_globals.opacity = 1.0
         dlc_globals.mouth_mask = False
         dlc_globals.poisson_blend = False
-        self._paste = face_swapper.paste_swapped_face
+        self._processor = face_swapper
 
-    def apply(
-        self,
-        frame: np.ndarray,
-        aligned_face: np.ndarray,
-        affine: np.ndarray,
-        target_face: Any,
-    ) -> np.ndarray:
-        return self._paste(frame, aligned_face, affine, target_face)
+    def bind_model(self, swapper: Any) -> None:
+        # Reuse FaceHub's already-loaded ONNX model; do not load a second copy.
+        self._processor.FACE_SWAPPER = swapper
+
+    def apply(self, frame: np.ndarray, source_face: Any, target_face: Any) -> np.ndarray:
+        return self._processor.swap_face(source_face, target_face, frame)
