@@ -6,13 +6,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 python3
 WORKDIR /app
 COPY worker/requirements.txt ./requirements.txt
 RUN pip3 install --upgrade pip && pip3 install cython && pip3 install -r requirements.txt
-COPY worker/gpu_worker.py worker/download_models.py worker/deep_live_cam_adapter.py ./
+COPY worker/gpu_worker.py worker/download_models.py worker/deep_live_cam_adapter.py worker/test_deep_live_cam_adapter.py ./
 # Import only the headless Deep-Live-Cam processing modules (not its desktop UI).
 COPY vendor/Deep-Live-Cam/modules /app/vendor/Deep-Live-Cam/modules
 COPY vendor/Deep-Live-Cam/LICENSE /app/vendor/Deep-Live-Cam/LICENSE
 ENV PYTHONPATH=/app/vendor/Deep-Live-Cam
+# Exercise the actual vendored swap and paste-back with a fake ONNX model.
+RUN python3 -m unittest test_deep_live_cam_adapter -v
 # Fail the image build if the vendored headless processor cannot be imported.
-RUN python3 -c "from deep_live_cam_adapter import DeepLiveCamPasteBack; DeepLiveCamPasteBack(['CPUExecutionProvider'], 640); print('Deep-Live-Cam processor import OK')"
 # Bake models into the image so cold starts are fast.
 RUN python3 download_models.py
 ENV PROVIDER=cuda PORT=8787
