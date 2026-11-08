@@ -6,7 +6,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 python3
 WORKDIR /app
 COPY requirements.txt .
 RUN pip3 install --upgrade pip && pip3 install cython && pip3 install -r requirements.txt
-COPY gpu_worker.py download_models.py ./
+COPY worker/gpu_worker.py worker/download_models.py worker/deep_live_cam_adapter.py ./
+# Import only the headless Deep-Live-Cam processing modules (not its desktop UI).
+COPY vendor/Deep-Live-Cam/modules /app/vendor/Deep-Live-Cam/modules
+COPY vendor/Deep-Live-Cam/LICENSE /app/vendor/Deep-Live-Cam/LICENSE
+ENV PYTHONPATH=/app/vendor/Deep-Live-Cam
 # Bake models into the image so cold starts are fast.
 RUN python3 download_models.py
 ENV PROVIDER=cuda PORT=8787
