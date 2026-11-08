@@ -26,4 +26,4 @@ class DeepLiveCamPasteBack:
         self._processor.FACE_SWAPPER = swapper
 
     def apply(self, frame: np.ndarray, source_face: Any, target_face: Any) -> np.ndarray:
-        return self._processor.swap_face(source_face, target_face, frame)
+        return self._processor.swap_face(source_face, target_face, frame.copy())
