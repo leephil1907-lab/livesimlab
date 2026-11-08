@@ -1,0 +1,45 @@
+# Render Blueprint for Reachmark FaceHub.
+# This provisions only the web app. Connect GPU_WORKER_URL to a separate
+# NVIDIA-backed worker; Render service compute plans expose CPU/RAM resources.
+services:
+  - type: web
+    name: reachmark-facehub
+    runtime: docker
+    plan: standard
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    maxShutdownDelaySeconds: 120
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATA_DIR
+        value: /data
+      - key: TRUST_PROXY
+        value: "true"
+      - key: SECURE_COOKIES
+        value: "true"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PUBLIC_URL
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: GPU_WORKER_URL
+        sync: false
+      - key: GPU_WORKER_TOKEN
+        sync: false
+      - key: TEST_ENGINE
+        value: "false"
+      - key: DEMO_PAYMENTS
+        value: "false"
+    disk:
+      name: facehub-data
+      mountPath: /data
+      sizeGB: 2
