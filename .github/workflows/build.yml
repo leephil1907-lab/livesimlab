@@ -26,4 +26,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python -m py_compile worker/gpu_worker.py worker/download_models.py
+      - run: python -m py_compile worker/gpu_worker.py worker/download_models.py worker/deep_live_cam_adapter.py vendor/Deep-Live-Cam/modules/processors/frame/face_swapper.py
+      - run: docker build -f worker/Dockerfile -t facehub-worker:ci .
