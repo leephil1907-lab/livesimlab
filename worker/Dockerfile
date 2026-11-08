@@ -13,7 +13,6 @@ COPY vendor/Deep-Live-Cam/LICENSE /app/vendor/Deep-Live-Cam/LICENSE
 ENV PYTHONPATH=/app/vendor/Deep-Live-Cam
 # Exercise the actual vendored swap and paste-back with a fake ONNX model.
 RUN python3 -m unittest test_deep_live_cam_adapter -v
-# Fail the image build if the vendored headless processor cannot be imported.
 # Bake models into the image so cold starts are fast.
 RUN python3 download_models.py
 ENV PROVIDER=cuda PORT=8787
