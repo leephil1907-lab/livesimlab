@@ -108,6 +108,7 @@ class Engine:
                 extra["sess_options"] = so
                 log.info("Low-memory mode on")
             self.swapper = insightface.model_zoo.get_model(str(swapper_path), providers=self.providers, **extra)
+            self.dlc_pasteback.bind_model(self.swapper)
             # Warm up so the first live frame isn't slow.
             dummy = np.zeros((480, 640, 3), dtype=np.uint8)
             self.analyser.det_model.detect(dummy, max_num=1, metric="default")
@@ -134,8 +135,7 @@ class Engine:
         kps, bbox = tracked
         target = Face(bbox=bbox, kps=kps, det_score=float(bboxes[0, 4]) if found else 0.5)
         with self.lock:
-            aligned_face, affine = self.swapper.get(frame, target, s.source, paste_back=False)
-            out = self.dlc_pasteback.apply(frame.copy(), aligned_face, affine, target)
+            out = self.dlc_pasteback.apply(frame.copy(), s.source, target)
         if s.strength < 0.999:
             out = cv2.addWeighted(out, s.strength, frame, 1.0 - s.strength, 0)
         if s.mouth_mask:
