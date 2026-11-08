@@ -1,0 +1,49 @@
+name: Vendor Deep-Live-Cam into FaceHub
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".gitmodules"
+      - ".github/workflows/vendor-deep-live-cam.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vendor-deep-live-cam
+  cancel-in-progress: false
+
+jobs:
+  vendor-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout FaceHub
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch pinned upstream source
+        env:
+          UPSTREAM_SHA: 08896a51c9a6198f50dc9f7508acf39fc460c8f1
+        run: |
+          git clone --no-checkout https://github.com/hacksider/Deep-Live-Cam.git /tmp/deep-live-cam
+          git -C /tmp/deep-live-cam checkout "$UPSTREAM_SHA"
+          test -f /tmp/deep-live-cam/LICENSE
+          mkdir -p vendor/Deep-Live-Cam
+          rsync -a --delete --exclude='.git' /tmp/deep-live-cam/ vendor/Deep-Live-Cam/
+
+      - name: Replace submodule pointer with repository files
+        run: |
+          git rm --cached -f vendor/Deep-Live-Cam || true
+          rm -f .gitmodules
+          git add -A vendor/Deep-Live-Cam .gitmodules
+          if git diff --cached --quiet; then
+            echo "No vendored source changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "vendor(facehub): include Deep-Live-Cam source files"
+          git push origin HEAD:main
