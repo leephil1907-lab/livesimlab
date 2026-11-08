@@ -4,6 +4,7 @@ import './styles/base.css';
 import './styles/public.css';
 import './styles/home.css';
 import './styles/app.css';
+import './styles/modern.css';
 import { AppProvider, RouterProvider, ToastProvider, useApp, useRouter } from './lib/core.jsx';
 import { PublicLayout } from './components/Layout.jsx';
 import { AppLayout } from './components/AppLayout.jsx';
