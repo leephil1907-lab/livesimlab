@@ -278,3 +278,120 @@ table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .range::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #f0f1ee; border: 0; box-shadow: 0 0 0 4px rgba(198,244,50,.25), 0 2px 6px rgba(0,0,0,.5); }
 .range:focus-visible::-webkit-slider-thumb, .range:hover::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgba(111,147,255,.35), 0 2px 6px rgba(0,0,0,.5); }
 .range:disabled { opacity: .5; cursor: not-allowed; }
+
+
+/* ───────── Liquid glass interface layer ─────────
+   Static glass surfaces only: no animated gradients, shimmer, or moving output.
+*/
+.app-theme {
+  --paper: #080d16;
+  --surface: rgba(22, 31, 47, .58);
+  --raised: rgba(255, 255, 255, .075);
+  --line: rgba(210, 228, 255, .13);
+  --line-strong: rgba(220, 235, 255, .24);
+  --ink: #f4f7ff;
+  --ink-2: #d5deee;
+  --muted: #9baac0;
+  --accent: #a9d7ff;
+  --accent-soft: rgba(139, 198, 255, .16);
+  --shadow: 0 16px 48px rgba(0, 0, 0, .28);
+  --shadow-lg: 0 28px 80px rgba(0, 0, 0, .42);
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(70, 125, 190, .22), transparent 38%),
+    radial-gradient(ellipse at 88% 18%, rgba(112, 93, 178, .17), transparent 34%),
+    linear-gradient(145deg, #080d16 0%, #101a2a 48%, #0a1220 100%);
+  background-attachment: fixed;
+}
+.app-theme .app-side,
+.app-theme .app-mobile-bar,
+.app-theme .app-tabs,
+.app-theme .panel,
+.app-theme .balance-card,
+.app-theme .controls,
+.app-theme .meter > div,
+.app-theme .char-card,
+.app-theme .wallet-hero > div,
+.app-theme .stat-grid > div,
+.app-theme .table-wrap,
+.app-theme .modal,
+.app-theme .callback-card,
+.app-theme .track-stats > div {
+  background: rgba(22, 32, 49, .58);
+  border: 1px solid rgba(220, 235, 255, .15);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, .20), inset 0 1px 0 rgba(255, 255, 255, .10);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+  backdrop-filter: blur(22px) saturate(145%);
+}
+.app-theme .app-side { border-left: 0; border-top: 0; border-bottom: 0; }
+.app-theme .app-mobile-bar { background: rgba(10, 17, 29, .76); }
+.app-theme .app-tabs { background: rgba(10, 17, 29, .82); }
+.app-theme .side-link.active,
+.app-theme .side-link:hover,
+.app-theme .app-tabs a.active { background: rgba(170, 211, 255, .13); color: #fff; }
+.app-theme .balance-card { background: rgba(142, 190, 239, .10); }
+.app-theme .stage { border: 1px solid rgba(220, 235, 255, .2); box-shadow: 0 18px 48px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08); }
+.app-theme .stage-pill,
+.app-theme .stage-busy > div,
+.app-theme .coach,
+.app-theme .credits-pill,
+.app-theme .icon-btn,
+.app-theme .select,
+.app-theme .model-opt,
+.app-theme .track-stats > div,
+.app-theme .notice,
+.app-theme .summary-grid div,
+.app-theme .char,
+.app-theme .char-add,
+.app-theme .chip,
+.app-theme .upload-drop,
+.app-theme .confirm-buy {
+  background-color: rgba(255, 255, 255, .075);
+  border-color: rgba(220, 235, 255, .17);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+.app-theme .stage-pill.live { background: rgba(190, 65, 82, .78); }
+.app-theme .icon-btn.on,
+.app-theme .model-opt.selected,
+.app-theme .chip.on,
+.app-theme .chip:hover { background: rgba(145, 202, 255, .18); border-color: rgba(166, 213, 255, .52); color: #eef7ff; }
+.app-theme .go-btn { background: linear-gradient(135deg, #dceeff, #a9d4ff); color: #102033; box-shadow: 0 8px 24px rgba(105, 174, 235, .22), inset 0 1px 0 rgba(255,255,255,.8); }
+.app-theme .go-btn:hover:not(:disabled) { background: linear-gradient(135deg, #edf6ff, #b8ddff); }
+.app-theme .btn-primary { background: linear-gradient(135deg, #d9edff, #a9d4ff); color: #102033; }
+.app-theme .btn-primary:hover:not(:disabled) { background: #e8f4ff; }
+.app-theme .btn-light,
+.app-theme .input,
+.app-theme .custom-form { background: rgba(255,255,255,.07); border-color: rgba(220,235,255,.18); color: var(--ink); }
+.app-theme .input:focus { border-color: rgba(166,213,255,.7); box-shadow: 0 0 0 4px rgba(139,198,255,.15); }
+.app-theme .wallet-hero > div:first-child { background: rgba(139, 198, 255, .13); border-color: rgba(166,213,255,.28); }
+.app-theme .wallet-hero > div:first-child span { color: #d9edff; }
+.app-theme .char.selected { border-color: #c9e6ff; box-shadow: 0 0 0 2px rgba(169,215,255,.2); }
+.app-theme .modal-back { background: rgba(3, 8, 16, .72); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+.app-theme .upload-drop:hover,
+.app-theme .upload-drop.drag { background: rgba(145,202,255,.12); border-color: rgba(166,213,255,.65); }
+.app-theme .meter-bar { background: rgba(255,255,255,.1); }
+.app-theme .meter-bar i { background: #a9d7ff; }
+.app-theme .range { background: linear-gradient(90deg, #79b9f1, #c3e3ff) 0 / var(--p, 50%) 100% no-repeat, rgba(255,255,255,.12); }
+.app-theme .range::-webkit-slider-thumb,
+.app-theme .range::-moz-range-thumb { background: #e7f4ff; box-shadow: 0 0 0 4px rgba(139,198,255,.22), 0 2px 6px rgba(0,0,0,.4); }
+.app-theme .badge.info { background: rgba(139,198,255,.16); color: #cde7ff; }
+.app-theme .notice.info { background: rgba(139,198,255,.12); color: #d8ecff; }
+.app-theme .confirm-buy { background: rgba(139,198,255,.12); border-color: rgba(166,213,255,.28); }
+.app-theme .table th,
+.app-theme .table td { border-color: rgba(220,235,255,.12); }
+.app-theme .output-page { background: #000; }
+@media (max-width: 960px) {
+  .app-theme .app-mobile-bar { background: rgba(10,17,29,.88); }
+  .app-theme .app-tabs { background: rgba(10,17,29,.9); }
+  .app-theme .app-main { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .app-theme .app-side, .app-theme .app-mobile-bar, .app-theme .app-tabs,
+  .app-theme .panel, .app-theme .balance-card, .app-theme .controls,
+  .app-theme .meter > div, .app-theme .char-card, .app-theme .wallet-hero > div,
+  .app-theme .stat-grid > div, .app-theme .table-wrap, .app-theme .modal,
+  .app-theme .credits-pill, .app-theme .icon-btn, .app-theme .select,
+  .app-theme .model-opt, .app-theme .notice, .app-theme .upload-drop {
+    -webkit-backdrop-filter: none; backdrop-filter: none; background-color: #172338;
+  }
+}
